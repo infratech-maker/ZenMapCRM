@@ -1,0 +1,28 @@
+[
+  {
+    "phone_number": "09012345678",
+    "email": "test1@example.com",
+    "name": "山田太郎",
+    "status": "lead",
+    "source": "import",
+    "notes": "サンプル顧客1",
+    "tags": ["重要", "新規"]
+  },
+  {
+    "phone_number": "09087654321",
+    "email": "test2@example.com",
+    "name": "佐藤花子",
+    "status": "contacted",
+    "source": "import",
+    "notes": "サンプル顧客2",
+    "tags": ["フォローアップ"]
+  },
+  {
+    "phone_number": "08011112222",
+    "name": "鈴木一郎",
+    "status": "lead",
+    "source": "import",
+    "notes": "電話番号のみ"
+  }
+]
+

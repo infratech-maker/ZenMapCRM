@@ -1,0 +1,24 @@
+[
+  {
+    "source": "https://example.com/page1",
+    "data": {
+      "name": "会社A",
+      "phone": "09012345678",
+      "address": "東京都千代田区",
+      "industry": "IT"
+    },
+    "status": "new",
+    "notes": "サンプルデータ1"
+  },
+  {
+    "source": "https://example.com/page2",
+    "data": {
+      "name": "会社B",
+      "email": "test@example.com",
+      "industry": "製造業"
+    },
+    "status": "new",
+    "notes": "サンプルデータ2"
+  }
+]
+

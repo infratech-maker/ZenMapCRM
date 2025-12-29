@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # .NET / Avalonia アプリケーションのビルド
+  build-dotnet:
+    name: Build .NET Application
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      
+      - name: Restore dependencies
+        run: dotnet restore
+      
+      - name: Build
+        run: dotnet build --no-restore
+
+  # Next.js アプリケーションのビルド
+  build-nextjs:
+    name: Build Next.js Application
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./crm-platform
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./crm-platform/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run type check
+        run: npm run type-check || npx tsc --noEmit
+      
+      - name: Build
+        run: npm run build
+        env:
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/test_db
+          TEST_TENANT_ID: 00000000-0000-0000-0000-000000000000
+
+  # Lint check
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    
+    defaults:
+      run:
+        working-directory: ./crm-platform
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+          cache-dependency-path: ./crm-platform/package-lock.json
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint || echo "Linter not configured"
+

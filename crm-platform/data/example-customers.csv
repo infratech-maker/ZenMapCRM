@@ -1,0 +1,5 @@
+phone_number,email,name,status,source,notes
+09012345678,test1@example.com,山田太郎,lead,import,サンプル顧客1
+09087654321,test2@example.com,佐藤花子,contacted,import,サンプル顧客2
+08011112222,,鈴木一郎,lead,import,電話番号のみ
+

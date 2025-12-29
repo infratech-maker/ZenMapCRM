@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # .NET dependencies
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
+  # npm dependencies for crm-platform
+  - package-ecosystem: "npm"
+    directory: "/crm-platform"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+
