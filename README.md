@@ -1,15 +1,15 @@
-# CallSenderApp
+# Sales List-toolApp
 
 統合CRMプラットフォームとAvaloniaデスクトップアプリケーションの統合プロジェクト。
 
 ## プロジェクト構成
 
-- **CallSenderApp**: Avalonia UI フレームワークを使用した .NET 8.0 デスクトップアプリケーション
+- **Sales List-toolApp**: Avalonia UI フレームワークを使用した .NET 8.0 デスクトップアプリケーション
 - **crm-platform**: Next.js 15 ベースの統合CRMプラットフォーム（Webアプリケーション）
 
 ## 技術スタック
 
-### CallSenderApp (.NET)
+### Sales List-toolApp (.NET)
 - **Framework**: .NET 8.0
 - **UI Framework**: Avalonia 11.3.0
 - **Platform**: Windows, macOS, Linux
@@ -31,7 +31,7 @@
 1. **リポジトリのクローン**
    ```bash
    git clone <repository-url>
-   cd CallSenderApp
+   cd apclo-partner-crm
    ```
 
 2. **Docker環境の起動**
@@ -46,12 +46,28 @@
    ```
    詳細は [crm-platform/README.md](./crm-platform/README.md) を参照してください。
 
-4. **CallSenderAppのビルド**
+4. **Sales List-toolAppのビルド**
    ```bash
    dotnet restore
    dotnet build
    dotnet run
    ```
+
+## さくらクラウド環境
+
+### 本番環境情報
+
+- **サーバーIP**: 153.121.65.42
+- **アプリケーションURL**: http://153.121.65.42:5000/list-tool
+- **データベース**: PostgreSQL 16 (localhost:5432)
+- **データベース名**: restaurants_db
+- **Redis**: localhost:6379
+
+### デプロイ方法
+
+詳細は各プロジェクトのドキュメントを参照してください。
+
+- **crm-platform**: [crm-platform/README.md](./crm-platform/README.md)
 
 ## 開発
 
