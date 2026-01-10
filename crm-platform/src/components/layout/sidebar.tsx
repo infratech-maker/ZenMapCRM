@@ -14,6 +14,7 @@ import {
   Building2,
   LogOut,
   UserCog,
+  CreditCard,     // Pricing
 } from "lucide-react"
 
 interface SidebarProps {
@@ -47,6 +48,7 @@ const menuGroups = [
     label: "SYSTEM", // 基盤
     items: [
       { href: "/dashboard/customers", label: "Customers", icon: Users },
+      { href: "/dashboard/pricing", label: "Pricing", icon: CreditCard },
       { href: "/dashboard/settings/users", label: "Users", icon: UserCog, roles: ["Super Admin", "Org Admin"] },
       { href: "/dashboard/settings/organizations", label: "Organization", icon: Building2, roles: ["Super Admin", "Org Admin"] },
       { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["Super Admin"] },

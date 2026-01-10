@@ -14,6 +14,41 @@
 
 ---
 
+## [0.4.0] - 2025-01-10
+
+### 追加
+
+#### プライシング画面（料金プラン）機能
+- **PricingSectionコンポーネント**: SaaS型CRMの料金プラン選択セクション
+  - Shadcn/UIのCard, Button, Badge, Switchを使用
+  - framer-motionによるマイクロインタラクション（ホバー、アニメーション）
+  - 期間切り替え: 月払い/年払いトグル（年払いは20% OFFバッジ表示）
+  - 3つのプラン構成:
+    - Starter: 無料/個人向け
+    - Pro: 中小企業向け（「一番人気」バッジ）
+    - Enterprise: 大規模向け（お問い合わせボタン）
+  - プライシングページ (`/dashboard/pricing`) の実装
+  - サイドバーに「Pricing」メニューを追加
+
+#### CSVエクスポート機能
+- **DataTableExportButtonコンポーネント**: TanStack TableデータのCSVエクスポート
+  - クライアントサイドでのCSV生成（外部ライブラリ不要）
+  - BOM付与によるExcelでの文字化け防止
+  - フィルタリング済みデータのエクスポート対応
+  - ファイル名に日付を自動付与（`data-YYYY-MM-DD.csv`）
+- **exportTableToCSVユーティリティ関数**: 汎用的なCSVエクスポート機能
+  - TanStack Tableのインスタンスを受け取りCSV変換
+  - 表示されているカラムのみをエクスポート
+  - CSVエスケープ処理（ダブルクォート対応）
+
+### 変更
+- `@radix-ui/react-switch` パッケージを追加
+- `framer-motion` パッケージを追加
+- サイドバーに「Pricing」メニューを追加（SYSTEMグループ）
+- ヘッダーのページタイトルマッピングに「Pricing」を追加
+
+---
+
 ## [0.3.0] - 2025-01-10
 
 ### 追加

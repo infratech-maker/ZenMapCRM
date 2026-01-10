@@ -17,6 +17,7 @@ const pageTitles: Record<string, string> = {
   "/dashboard/customers": "Customers",
   "/dashboard/master-leads": "Intelligence",
   "/dashboard/projects": "Campaigns",
+  "/dashboard/pricing": "Pricing",
   "/dashboard/settings/users": "Users",
   "/dashboard/settings/organizations": "Organization",
   "/dashboard/settings": "Settings",
