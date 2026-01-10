@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     return (
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Command Center</h2>
         </div>
 
         <div className="space-y-4">
@@ -50,7 +50,7 @@ export default async function DashboardPage() {
     return (
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="flex items-center justify-between space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <h2 className="text-3xl font-bold tracking-tight">Command Center</h2>
         </div>
         <div className="rounded-md bg-red-50 p-4 border border-red-200">
           <p className="text-sm font-semibold text-red-800 mb-2">

@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { UserNav } from "./user-nav";
+import { ReleaseNotesDialog } from "./release-notes-dialog";
 
 interface HeaderProps {
   userName: string;
@@ -9,15 +10,16 @@ interface HeaderProps {
   userRole: string;
 }
 
-// ページタイトルマッピング
+// ページタイトルマッピング（ZenMapコンセプトに統一）
 const pageTitles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/leads": "Leads (案件)",
+  "/dashboard": "Command Center",
+  "/dashboard/leads": "Action Inbox",
   "/dashboard/customers": "Customers",
-  "/dashboard/master-leads": "Master Leads (マスターリード)",
-  "/dashboard/settings/users": "Users (ユーザー管理)",
-  "/dashboard/settings/organizations": "Organization (組織管理)",
-  "/dashboard/settings": "System Settings",
+  "/dashboard/master-leads": "Intelligence",
+  "/dashboard/projects": "Campaigns",
+  "/dashboard/settings/users": "Users",
+  "/dashboard/settings/organizations": "Organization",
+  "/dashboard/settings": "Settings",
   "/dashboard/scraper": "Scraper",
 };
 
@@ -30,6 +32,7 @@ export function Header({ userName, userEmail, userRole }: HeaderProps) {
       <div className="flex flex-1 items-center justify-between">
         <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
         <div className="flex items-center gap-4">
+          <ReleaseNotesDialog />
           <UserNav
             userName={userName}
             userEmail={userEmail}

@@ -45,7 +45,7 @@ export default async function MasterLeadsPage({ searchParams }: MasterLeadsPageP
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">マスターリード管理</h1>
+          <h1 className="text-3xl font-bold">Intelligence</h1>
         </div>
         <div className="rounded-md bg-red-50 p-4 border border-red-200">
           <p className="text-sm font-semibold text-red-800 mb-2">
@@ -62,4 +62,7 @@ export default async function MasterLeadsPage({ searchParams }: MasterLeadsPageP
     );
   }
 }
+
+
+
 

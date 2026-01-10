@@ -48,11 +48,12 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
   } catch (error) {
     console.error("LeadsPage error:", error);
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
+    const errorStack = error instanceof Error ? error.stack : undefined;
     
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold">リード管理</h1>
+          <h1 className="text-3xl font-bold">Action Inbox</h1>
         </div>
         <div className="rounded-md bg-red-50 p-4 border border-red-200">
           <p className="text-sm font-semibold text-red-800 mb-2">
@@ -61,6 +62,16 @@ export default async function LeadsPage({ searchParams }: LeadsPageProps) {
           <p className="text-sm text-red-700 mb-2">
             {errorMessage}
           </p>
+          {errorStack && (
+            <details className="mt-2">
+              <summary className="text-xs text-red-600 cursor-pointer">
+                詳細を表示
+              </summary>
+              <pre className="text-xs text-red-600 mt-2 p-2 bg-red-100 rounded overflow-auto max-h-40">
+                {errorStack}
+              </pre>
+            </details>
+          )}
           <p className="text-xs text-red-600 mt-2">
             開発サーバーのログも確認してください。
           </p>
