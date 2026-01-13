@@ -3,7 +3,6 @@
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { generateEmbedding } from "@/lib/ai/embedding"
-import { Prisma } from "@prisma/client"
 
 /**
  * AI検索（ベクトル検索）でMasterLeadを検索
@@ -38,7 +37,7 @@ export async function searchMasterLeadsByAI(
       phone: string | null;
       address: string | null;
       source: string;
-      data: Prisma.JsonValue;
+      data: any;
       similarity: number;
     }>>`
       SELECT 

@@ -92,7 +92,7 @@ export async function getMasterLeads(
         phone: string | null;
         address: string | null;
         source: string;
-        data: Prisma.JsonValue;
+        data: any;
         createdAt: Date;
         updatedAt: Date;
         _count: { leads: number };
