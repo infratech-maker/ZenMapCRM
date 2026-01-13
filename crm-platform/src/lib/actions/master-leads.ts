@@ -70,23 +70,8 @@ export async function getMasterLeads(
       const searchQuery = query.trim();
       const searchPattern = `%${searchQuery}%`;
 
-      // PostgreSQLのJSONB演算子を使用した生のSQLクエリ
-      const sqlWhere = Prisma.sql`
-        (
-          company_name ILIKE ${searchPattern}
-          OR phone ILIKE ${searchPattern}
-          OR address ILIKE ${searchPattern}
-          OR (data->>'name')::text ILIKE ${searchPattern}
-          OR (data->>'店舗名')::text ILIKE ${searchPattern}
-          OR (data->>'phone')::text ILIKE ${searchPattern}
-          OR (data->>'電話番号')::text ILIKE ${searchPattern}
-          OR (data->>'address')::text ILIKE ${searchPattern}
-          OR (data->>'住所')::text ILIKE ${searchPattern}
-        )
-      `;
-
-      // 生のSQLクエリで検索
-      const masterLeadsResult = await prisma.$queryRaw<Array<{
+      // 生のSQLクエリで検索（$queryRawUnsafeを使用、パラメータ化クエリでSQLインジェクション対策）
+      const masterLeadsResult = await prisma.$queryRawUnsafe<Array<{
         id: string;
         companyName: string;
         phone: string | null;
@@ -95,9 +80,9 @@ export async function getMasterLeads(
         data: any;
         createdAt: Date;
         updatedAt: Date;
-        _count: { leads: number };
-      }>>`
-        SELECT 
+        leadsCount: number;
+      }>>(
+        `SELECT 
           ml.id,
           ml.company_name as "companyName",
           ml.phone,
@@ -109,20 +94,46 @@ export async function getMasterLeads(
           COUNT(l.id)::int as "leadsCount"
         FROM master_leads ml
         LEFT JOIN leads l ON l."masterLeadId" = ml.id
-          AND l."tenantId" = ${tenantId}
-          AND l."organizationId" = ${userOrg.organizationId}
-        WHERE ${sqlWhere}
+          AND l."tenantId" = $1::uuid
+          AND l."organizationId" = $2::uuid
+        WHERE (
+          company_name ILIKE $3
+          OR phone ILIKE $3
+          OR address ILIKE $3
+          OR (data->>'name')::text ILIKE $3
+          OR (data->>'店舗名')::text ILIKE $3
+          OR (data->>'phone')::text ILIKE $3
+          OR (data->>'電話番号')::text ILIKE $3
+          OR (data->>'address')::text ILIKE $3
+          OR (data->>'住所')::text ILIKE $3
+        )
         GROUP BY ml.id, ml.company_name, ml.phone, ml.address, ml.source, ml.data, ml.created_at, ml.updated_at
         ORDER BY ml.updated_at DESC
-        LIMIT ${pageSize} OFFSET ${skip}
-      `;
+        LIMIT $4 OFFSET $5`,
+        tenantId,
+        userOrg.organizationId,
+        searchPattern,
+        pageSize,
+        skip
+      );
 
       // 総件数を取得
-      const totalResult = await prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT COUNT(DISTINCT ml.id)::bigint as count
+      const totalResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(DISTINCT ml.id)::bigint as count
         FROM master_leads ml
-        WHERE ${sqlWhere}
-      `;
+        WHERE (
+          company_name ILIKE $1
+          OR phone ILIKE $1
+          OR address ILIKE $1
+          OR (data->>'name')::text ILIKE $1
+          OR (data->>'店舗名')::text ILIKE $1
+          OR (data->>'phone')::text ILIKE $1
+          OR (data->>'電話番号')::text ILIKE $1
+          OR (data->>'address')::text ILIKE $1
+          OR (data->>'住所')::text ILIKE $1
+        )`,
+        searchPattern
+      );
 
       const total = Number(totalResult[0]?.count || 0);
       const totalPages = Math.ceil(total / pageSize);

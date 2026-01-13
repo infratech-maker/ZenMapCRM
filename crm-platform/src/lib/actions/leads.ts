@@ -71,29 +71,14 @@ export async function getLeads(
       const searchQuery = query.trim();
       const searchPattern = `%${searchQuery}%`;
 
-      // PostgreSQLのJSONB演算子を使用した生のSQLクエリ
-      // data->>'name' などでJSONから文字列を取得し、ILIKEで部分一致検索
-      const sqlWhere = Prisma.sql`
-        (
-          (data->>'name')::text ILIKE ${searchPattern}
-          OR (data->>'store_name')::text ILIKE ${searchPattern}
-          OR (data->>'店舗名')::text ILIKE ${searchPattern}
-          OR (data->>'phone')::text ILIKE ${searchPattern}
-          OR (data->>'phone_number')::text ILIKE ${searchPattern}
-          OR (data->>'電話番号')::text ILIKE ${searchPattern}
-          OR (data->>'address')::text ILIKE ${searchPattern}
-          OR (data->>'詳細住所')::text ILIKE ${searchPattern}
-          OR (data->>'住所')::text ILIKE ${searchPattern}
-        )
-      `;
+      // ステータスフィルターのSQL条件を構築
+      const statusValues = statuses && statuses.length > 0 
+        ? statuses.map(s => `'${s.replace(/'/g, "''")}'`).join(', ')
+        : '';
+      const statusCondition = statusValues ? `AND status IN (${statusValues})` : '';
 
-      // ステータスフィルターのSQL条件
-      const statusCondition = statuses && statuses.length > 0
-        ? Prisma.sql`AND status IN (${Prisma.join(statuses.map(s => Prisma.sql`${s}`), ', ')})`
-        : Prisma.sql``;
-
-      // 生のSQLクエリで検索
-      const leadsResult = await prisma.$queryRaw<Array<{
+      // 生のSQLクエリで検索（$queryRawUnsafeを使用、パラメータ化クエリでSQLインジェクション対策）
+      const leadsResult = await prisma.$queryRawUnsafe<Array<{
         id: string;
         tenantId: string;
         scrapingJobId: string | null;
@@ -106,23 +91,51 @@ export async function getLeads(
         createdBy: string | null;
         updatedBy: string | null;
         organizationId: string | null;
-      }>>`
-        SELECT * FROM leads
-        WHERE "tenantId" = ${tenantId}
-          AND "organizationId" = ${userOrg.organizationId}
+      }>>(
+        `SELECT * FROM leads
+        WHERE "tenantId" = $1::uuid
+          AND "organizationId" = $2::uuid
           ${statusCondition}
-          AND ${sqlWhere}
+          AND (
+            (data->>'name')::text ILIKE $3
+            OR (data->>'store_name')::text ILIKE $3
+            OR (data->>'店舗名')::text ILIKE $3
+            OR (data->>'phone')::text ILIKE $3
+            OR (data->>'phone_number')::text ILIKE $3
+            OR (data->>'電話番号')::text ILIKE $3
+            OR (data->>'address')::text ILIKE $3
+            OR (data->>'詳細住所')::text ILIKE $3
+            OR (data->>'住所')::text ILIKE $3
+          )
         ORDER BY "createdAt" DESC
-        LIMIT ${pageSize} OFFSET ${skip}
-      `;
+        LIMIT $4 OFFSET $5`,
+        tenantId,
+        userOrg.organizationId,
+        searchPattern,
+        pageSize,
+        skip
+      );
 
-      const totalResult = await prisma.$queryRaw<Array<{ count: bigint }>>`
-        SELECT COUNT(*)::int as count FROM leads
-        WHERE "tenantId" = ${tenantId}
-          AND "organizationId" = ${userOrg.organizationId}
+      const totalResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+        `SELECT COUNT(*)::int as count FROM leads
+        WHERE "tenantId" = $1::uuid
+          AND "organizationId" = $2::uuid
           ${statusCondition}
-          AND ${sqlWhere}
-      `;
+          AND (
+            (data->>'name')::text ILIKE $3
+            OR (data->>'store_name')::text ILIKE $3
+            OR (data->>'店舗名')::text ILIKE $3
+            OR (data->>'phone')::text ILIKE $3
+            OR (data->>'phone_number')::text ILIKE $3
+            OR (data->>'電話番号')::text ILIKE $3
+            OR (data->>'address')::text ILIKE $3
+            OR (data->>'詳細住所')::text ILIKE $3
+            OR (data->>'住所')::text ILIKE $3
+          )`,
+        tenantId,
+        userOrg.organizationId,
+        searchPattern
+      );
 
       const leads = leadsResult.map((lead) => ({
         ...lead,
