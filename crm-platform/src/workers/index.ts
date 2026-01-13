@@ -18,7 +18,7 @@ try {
   console.log("ℹ️  .env.local not found, using environment variables from Railway");
 }
 
-import { Worker } from "bullmq";
+import { Worker, Job } from "bullmq";
 import IORedis from "ioredis";
 import { db } from "../lib/db";
 import { scrapingJobs, leads, masterLeads } from "../lib/db/schema";
@@ -88,7 +88,12 @@ function generateCuid(): string {
 /**
  * ジョブ処理関数
  */
-async function processJob(job: { id: string; data: { jobId: string; tenantId: string; url: string } }): Promise<{ status: string; result?: any }> {
+async function processJob(job: Job<any, { jobId: string; tenantId: string; url: string }, string>): Promise<{ status: string; result?: any }> {
+  // job.idがundefinedの場合はエラー
+  if (!job.id) {
+    throw new Error("Job ID is undefined");
+  }
+
   const { jobId, tenantId, url } = job.data;
 
   console.log(`📡 Processing job ${job.id} (DB Job ID: ${jobId}, URL: ${url})`);
@@ -205,7 +210,7 @@ async function processJob(job: { id: string; data: { jobId: string; tenantId: st
 // Workerインスタンス作成
 const worker = new Worker(
   QUEUE_NAME,
-  async (job) => {
+  async (job: Job<any, { jobId: string; tenantId: string; url: string }, string>) => {
     return await processJob(job);
   },
   {
