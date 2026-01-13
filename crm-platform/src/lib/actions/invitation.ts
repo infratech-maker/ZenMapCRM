@@ -131,7 +131,7 @@ export async function acceptInvitation(
   }
 
   // トランザクション処理
-  const result = await prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx: Prisma.TransactionClient) => {
     // パスワードをハッシュ化
     const passwordHash = await bcrypt.hash(password, 10);
 
