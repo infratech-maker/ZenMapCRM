@@ -57,7 +57,7 @@ export async function searchMasterLeadsByAI(
 
     return {
       success: true,
-      results: results.map(r => ({
+      results: results.map((r: typeof results[0]) => ({
         id: r.id,
         companyName: r.companyName,
         phone: r.phone,
