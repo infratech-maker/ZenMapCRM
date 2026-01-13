@@ -88,7 +88,7 @@ function generateCuid(): string {
 /**
  * ジョブ処理関数
  */
-async function processJob(job: Job<any, { jobId: string; tenantId: string; url: string }, string>): Promise<{ status: string; result?: any }> {
+async function processJob(job: Job<any, { jobId: string; tenantId: string; url: string }, string>): Promise<any> {
   // job.idがundefinedの場合はエラー
   if (!job.id) {
     throw new Error("Job ID is undefined");
