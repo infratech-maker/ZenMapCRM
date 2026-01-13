@@ -285,7 +285,7 @@ const columns: ColumnDef<MasterLead>[] = [
     accessorFn: (row: MasterLead) => {
       const data = row.data as any;
       if (!data || typeof data !== "object") return "-";
-      return data.phone || data.電話番号 || row.original.phone || "-";
+      return data.phone || data.電話番号 || row.phone || "-";
     },
     filterFn: (row, id, value) => {
       if (!value || (Array.isArray(value) && value.length === 0) || (typeof value === "string" && value.length === 0)) return true;
