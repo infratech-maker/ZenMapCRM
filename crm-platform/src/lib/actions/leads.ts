@@ -53,7 +53,7 @@ export async function getLeads(
   const skip = (page - 1) * pageSize;
 
   // where条件を動的に構築
-  const whereCondition: Prisma.LeadWhereInput = {
+  const whereCondition: any = {
     tenantId,
     organizationId: userOrg.organizationId,
   };
