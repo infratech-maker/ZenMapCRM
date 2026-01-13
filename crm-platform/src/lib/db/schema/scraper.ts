@@ -1,6 +1,7 @@
 import { pgTable, text, timestamp, uuid, pgEnum, jsonb } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { tenants } from "./tenants";
+import { masterLeads } from "./master-leads";
 
 /**
  * スクレイピングジョブステータス
@@ -102,6 +103,10 @@ export const leadsRelations = relations(leads, ({ one }) => ({
   scrapingJob: one(scrapingJobs, {
     fields: [leads.scrapingJobId],
     references: [scrapingJobs.id],
+  }),
+  masterLead: one(masterLeads, {
+    fields: [leads.masterLeadId],
+    references: [masterLeads.id],
   }),
 }));
 

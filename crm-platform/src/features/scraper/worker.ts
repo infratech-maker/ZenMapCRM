@@ -58,9 +58,14 @@ export async function scrapeTabelogStore(url: string): Promise<ScrapingResult> {
   let browser: Browser | null = null;
 
   try {
-    // ブラウザを起動
+    // ブラウザを起動（Docker環境対応）
     browser = await chromium.launch({
       headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // メモリ不足エラー防止に必須
+      ],
     });
 
     const context = await browser.newContext({
@@ -1356,9 +1361,14 @@ export async function scrapeGnaviStore(url: string): Promise<ScrapingResult> {
   let browser: Browser | null = null;
 
   try {
-    // ブラウザを起動
+    // ブラウザを起動（Docker環境対応）
     browser = await chromium.launch({
       headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // メモリ不足エラー防止に必須
+      ],
     });
 
     const context = await browser.newContext({
@@ -1898,10 +1908,17 @@ export async function scrapeUbereatsStore(url: string): Promise<ScrapingResult> 
     ];
     const randomUserAgent = userAgents[Math.floor(Math.random() * userAgents.length)];
 
-    // ブラウザを起動（Headlessモードを無効化）
+    // ブラウザを起動（Docker環境ではheadless: trueに変更）
+    // Railway/Docker環境ではheadless: falseは使用不可のため、headless: trueに変更
+    const isDocker = process.env.DOCKER === "true" || process.env.RAILWAY_ENVIRONMENT === "true";
     browser = await chromium.launch({
-      headless: false, // ボット検知回避のため可視化
-      slowMo: 100, // 人間らしい操作速度
+      headless: isDocker ? true : false, // Docker環境ではheadless必須
+      slowMo: isDocker ? undefined : 100, // Docker環境ではslowMo不要
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // メモリ不足エラー防止に必須
+      ],
     });
 
     const context = await browser.newContext({
@@ -2309,9 +2326,14 @@ export async function scrapeGoogleMapsPlace(url: string): Promise<ScrapingResult
   let browser: Browser | null = null;
 
   try {
-    // ブラウザを起動
+    // ブラウザを起動（Docker環境対応）
     browser = await chromium.launch({
       headless: true,
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage", // メモリ不足エラー防止に必須
+      ],
     });
 
     const context = await browser.newContext({

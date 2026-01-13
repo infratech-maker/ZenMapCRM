@@ -4,7 +4,7 @@ import { db } from "@/lib/db";
 import { scrapingJobs } from "@/lib/db/schema";
 import { withTenant } from "@/lib/db/tenant-helper";
 import { revalidatePath } from "next/cache";
-import { desc, sql } from "drizzle-orm";
+import { desc, sql, eq } from "drizzle-orm";
 
 /**
  * スクレイピングジョブを作成
@@ -37,12 +37,20 @@ export async function createScrapingJob(url: string) {
       })
       .returning();
 
-    // TODO: BullMQへの追加ロジック
-    // await queue.add('scraping', {
-    //   tenantId: await getCurrentTenant(),
-    //   jobId: job.id,
-    //   url: url.trim(),
-    // });
+    // BullMQにジョブを追加
+    try {
+      const { addScrapingJob } = await import("@/lib/queue/scraping-queue");
+      const bullmqJobId = await addScrapingJob(job.id, tenantId, url.trim());
+      
+      // BullMQのジョブIDをDBに保存
+      await db
+        .update(scrapingJobs)
+        .set({ bullmqJobId })
+        .where(eq(scrapingJobs.id, job.id));
+    } catch (error) {
+      console.error("Failed to add job to BullMQ queue:", error);
+      // BullMQへの追加に失敗しても、DBにはジョブが作成されているので続行
+    }
 
     // UIを更新
     revalidatePath("/dashboard/scraper");

@@ -387,6 +387,125 @@ export async function getMasterLeadsAsLeads(
 }
 
 /**
+ * マスターリードを全件取得（エクスポート用、ページネーションなし）
+ */
+export async function getAllMasterLeadsAsLeadsForExport(
+  query?: string,
+  statuses?: string[]
+) {
+  try {
+    const session = await auth();
+
+    if (!session?.user) {
+      throw new Error("Unauthorized");
+    }
+
+    const { tenantId } = session.user;
+
+    // ユーザーの主所属組織を取得
+    let userOrg;
+    try {
+      userOrg = await prisma.userOrganization.findFirst({
+        where: {
+          userId: session.user.id,
+          isPrimary: true,
+        },
+        select: {
+          organizationId: true,
+        },
+      });
+    } catch (dbError: any) {
+      console.error("Database connection error in getAllMasterLeadsAsLeadsForExport:", dbError);
+      if (dbError.message?.includes("Can't reach database server") || 
+          dbError.message?.includes("connect ECONNREFUSED")) {
+        throw new Error("データベースサーバーに接続できません。PostgreSQLが起動しているか確認してください。");
+      }
+      throw dbError;
+    }
+
+    if (!userOrg) {
+      return [];
+    }
+
+    // where条件を動的に構築
+    let whereCondition: Prisma.MasterLeadWhereInput = {};
+
+    // キーワード検索がある場合
+    if (query && query.trim().length > 0) {
+      const searchQuery = query.trim();
+      whereCondition = {
+        OR: [
+          { companyName: { contains: searchQuery, mode: "insensitive" } },
+          { phone: { contains: searchQuery, mode: "insensitive" } },
+          { address: { contains: searchQuery, mode: "insensitive" } },
+        ],
+      };
+    }
+
+    // マスターリードを全件取得（ページネーションなし）
+    const masterLeads = await prisma.masterLead.findMany({
+      where: {
+        ...whereCondition,
+        ...(statuses && statuses.length > 0
+          ? {
+              leads: {
+                some: {
+                  tenantId,
+                  organizationId: userOrg.organizationId,
+                  status: { in: statuses },
+                },
+              },
+            }
+          : {}),
+      },
+      orderBy: {
+        updatedAt: "desc",
+      },
+      include: {
+        leads: {
+          where: {
+            tenantId,
+            organizationId: userOrg.organizationId,
+            ...(statuses && statuses.length > 0
+              ? { status: { in: statuses } }
+              : {}),
+          },
+          take: 1, // 最新のリード1件を取得
+          orderBy: {
+            updatedAt: "desc",
+          },
+        },
+      },
+    });
+
+    // Lead型の形式に変換
+    const leads = masterLeads.map((ml) => {
+      const latestLead = ml.leads[0];
+
+      return {
+        id: ml.id,
+        source: ml.source,
+        data: ml.data as any,
+        status: latestLead?.status || "new",
+        notes: latestLead?.notes || null,
+        createdAt: ml.createdAt,
+        updatedAt: ml.updatedAt,
+        masterLeadId: ml.id,
+      };
+    });
+
+    return leads;
+  } catch (error: any) {
+    console.error("Error in getAllMasterLeadsAsLeadsForExport:", error);
+    if (error.message?.includes("Can't reach database server") || 
+        error.message?.includes("connect ECONNREFUSED")) {
+      throw new Error("データベースサーバーに接続できません。PostgreSQLが起動しているか確認してください。");
+    }
+    throw error;
+  }
+}
+
+/**
  * マスターリードの詳細を取得（紐付いているリード一覧も含む）
  */
 export async function getMasterLeadDetail(masterLeadId: string) {

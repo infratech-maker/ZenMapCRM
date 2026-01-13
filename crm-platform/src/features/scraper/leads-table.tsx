@@ -27,6 +27,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from "lucide-react";
 
 type Lead = {
@@ -892,6 +893,9 @@ export function LeadsTable({
             フィルターをクリア
           </Button>
         )}
+        <div className="ml-auto flex items-center gap-2">
+          <DataTableExportButton table={table} filename="leads_list" />
+        </div>
       </div>
 
       {/* テーブル */}

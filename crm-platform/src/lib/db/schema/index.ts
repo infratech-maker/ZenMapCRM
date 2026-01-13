@@ -15,6 +15,7 @@
 
 export * from "./tenants";
 export * from "./organizations";
+export * from "./master-leads";
 export * from "./products";
 export * from "./dynamicFields";
 export * from "./customers";

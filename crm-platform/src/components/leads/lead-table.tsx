@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { LeadStatusBadge } from "./lead-status-badge";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
+import { DataTableExportButton } from "@/components/ui/data-table/data-table-export-button";
 
 interface Lead {
   id: string;
@@ -42,6 +43,8 @@ interface LeadTableProps {
   totalPages: number;
   onPageChange: (page: number) => void;
   onLeadClick?: (lead: Lead) => void;
+  query?: string;
+  statuses?: string[];
 }
 
 // カテゴリからスラッシュより後ろの部分のみを抽出
@@ -638,6 +641,8 @@ export function LeadTable({
   totalPages,
   onPageChange,
   onLeadClick,
+  query,
+  statuses,
 }: LeadTableProps) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -666,6 +671,16 @@ export function LeadTable({
 
   return (
     <div className="space-y-4">
+      {/* ツールバー: エクスポートボタン */}
+      <div className="flex items-center justify-end">
+        <DataTableExportButton 
+          table={table} 
+          filename="leads_list"
+          query={query}
+          statuses={statuses}
+        />
+      </div>
+
       <div className="rounded-md border">
         <Table>
           <TableHeader>

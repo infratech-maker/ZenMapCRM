@@ -206,6 +206,8 @@ export function LeadsPageClient({
         totalPages={totalPages}
         onPageChange={handlePageChange}
         onLeadClick={handleLeadClick}
+        query={query}
+        statuses={statuses}
       />
 
       {/* リード詳細Sheet */}
