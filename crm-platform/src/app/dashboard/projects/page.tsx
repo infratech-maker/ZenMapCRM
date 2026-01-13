@@ -54,7 +54,7 @@ export default async function ProjectsPage() {
             リード管理画面の「AI検索」からリストを作成してください。
           </div>
         ) : (
-          projects.map((project) => (
+          projects.map((project: typeof projects[0]) => (
             <Card key={project.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center gap-2 mb-2">
