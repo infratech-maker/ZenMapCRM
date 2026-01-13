@@ -93,7 +93,7 @@ export default async function ProjectDetailPage({
             </tr>
           </thead>
           <tbody className="divide-y">
-            {project.leads.map((lead) => {
+            {project.leads.map((lead: typeof project.leads[0]) => {
               const info = getLeadInfo(lead);
               return (
                 <tr key={lead.id} className="hover:bg-slate-50">
