@@ -23,7 +23,7 @@ import IORedis from "ioredis";
 import { db } from "../lib/db";
 import { scrapingJobs, leads, masterLeads } from "../lib/db/schema";
 import { scrapeUrl } from "../features/scraper/worker";
-import { eq, or, and } from "drizzle-orm";
+import { eq, or, and, sql } from "drizzle-orm";
 
 // Redis接続設定
 // RailwayのRedisはTLS接続が必要な場合があるため、適切に設定
@@ -50,7 +50,7 @@ const connection = new IORedis(redisUrl, {
 // データベース接続確認
 async function checkDatabaseConnection() {
   try {
-    await db.execute({ sql: "SELECT 1", args: [] });
+    await db.execute(sql`SELECT 1`);
     console.log("✅ Database connection established");
     return true;
   } catch (error) {
