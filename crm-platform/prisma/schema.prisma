@@ -521,9 +521,9 @@ model Lead {
   projectId String?
   project   Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
-  // Master Lead relation (必須)
-  masterLeadId String
-  masterLead   MasterLead @relation(fields: [masterLeadId], references: [id], onDelete: Cascade)
+  // Master Lead relation (オプショナル)
+  masterLeadId String?
+  masterLead   MasterLead? @relation(fields: [masterLeadId], references: [id], onDelete: Cascade)
 
   // Relations
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
