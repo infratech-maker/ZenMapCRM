@@ -119,6 +119,12 @@ export async function getApifyJobStatus(runId: string) {
 
   try {
     const run = await apifyClient.run(runId).get();
+    if (!run) {
+      return {
+        success: false,
+        error: 'Run not found',
+      };
+    }
     return {
       success: true,
       status: run.status,
