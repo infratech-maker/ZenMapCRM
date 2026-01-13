@@ -78,7 +78,7 @@ export async function getLeads(
       const statusCondition = statusValues ? `AND status IN (${statusValues})` : '';
 
       // 生のSQLクエリで検索（$queryRawUnsafeを使用、パラメータ化クエリでSQLインジェクション対策）
-      const leadsResult = await prisma.$queryRawUnsafe<Array<{
+      type LeadRow = {
         id: string;
         tenantId: string;
         scrapingJobId: string | null;
@@ -91,7 +91,9 @@ export async function getLeads(
         createdBy: string | null;
         updatedBy: string | null;
         organizationId: string | null;
-      }>>(
+      };
+
+      const leadsResult = await prisma.$queryRawUnsafe(
         `SELECT * FROM leads
         WHERE "tenantId" = $1::uuid
           AND "organizationId" = $2::uuid
@@ -114,9 +116,9 @@ export async function getLeads(
         searchPattern,
         pageSize,
         skip
-      );
+      ) as LeadRow[];
 
-      const totalResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+      const totalResult = await prisma.$queryRawUnsafe(
         `SELECT COUNT(*)::int as count FROM leads
         WHERE "tenantId" = $1::uuid
           AND "organizationId" = $2::uuid
@@ -135,7 +137,7 @@ export async function getLeads(
         tenantId,
         userOrg.organizationId,
         searchPattern
-      );
+      ) as Array<{ count: bigint }>;
 
       const leads = leadsResult.map((lead) => ({
         ...lead,

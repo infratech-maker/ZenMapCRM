@@ -71,7 +71,7 @@ export async function getMasterLeads(
       const searchPattern = `%${searchQuery}%`;
 
       // 生のSQLクエリで検索（$queryRawUnsafeを使用、パラメータ化クエリでSQLインジェクション対策）
-      const masterLeadsResult = await prisma.$queryRawUnsafe<Array<{
+      type MasterLeadRow = {
         id: string;
         companyName: string;
         phone: string | null;
@@ -81,7 +81,9 @@ export async function getMasterLeads(
         createdAt: Date;
         updatedAt: Date;
         leadsCount: number;
-      }>>(
+      };
+
+      const masterLeadsResult = await prisma.$queryRawUnsafe(
         `SELECT 
           ml.id,
           ml.company_name as "companyName",
@@ -115,10 +117,10 @@ export async function getMasterLeads(
         searchPattern,
         pageSize,
         skip
-      );
+      ) as MasterLeadRow[];
 
       // 総件数を取得
-      const totalResult = await prisma.$queryRawUnsafe<Array<{ count: bigint }>>(
+      const totalResult = await prisma.$queryRawUnsafe(
         `SELECT COUNT(DISTINCT ml.id)::bigint as count
         FROM master_leads ml
         WHERE (
@@ -133,7 +135,7 @@ export async function getMasterLeads(
           OR (data->>'住所')::text ILIKE $1
         )`,
         searchPattern
-      );
+      ) as Array<{ count: bigint }>;
 
       const total = Number(totalResult[0]?.count || 0);
       const totalPages = Math.ceil(total / pageSize);
