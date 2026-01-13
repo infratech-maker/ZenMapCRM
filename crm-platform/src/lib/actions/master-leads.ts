@@ -62,7 +62,7 @@ export async function getMasterLeads(
   const skip = (page - 1) * pageSize;
 
   // where条件を動的に構築
-  const whereCondition: Prisma.MasterLeadWhereInput = {};
+  const whereCondition: any = {};
 
   // キーワード検索がある場合は、生のSQLを使用してJSONBフィールドを検索
   if (query && query.trim().length > 0) {
@@ -285,7 +285,7 @@ export async function getMasterLeadsAsLeads(
     const skip = (page - 1) * pageSize;
 
     // where条件を動的に構築
-    let whereCondition: Prisma.MasterLeadWhereInput = {};
+    let whereCondition: any = {};
 
     // キーワード検索がある場合
     if (query && query.trim().length > 0) {
@@ -441,7 +441,7 @@ export async function getAllMasterLeadsAsLeadsForExport(
     }
 
     // where条件を動的に構築
-    let whereCondition: Prisma.MasterLeadWhereInput = {};
+    let whereCondition: any = {};
 
     // キーワード検索がある場合
     if (query && query.trim().length > 0) {
