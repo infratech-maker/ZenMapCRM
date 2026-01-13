@@ -13,6 +13,12 @@ RUN npm ci
 # アプリケーションコードをコピー
 COPY . .
 
+# Prismaスキーマをコピー（prisma generate用）
+COPY prisma ./prisma
+
+# Prismaクライアントを生成
+RUN npx prisma generate
+
 # Next.jsのテレメトリーを無効化
 ENV NEXT_TELEMETRY_DISABLED=1
 
