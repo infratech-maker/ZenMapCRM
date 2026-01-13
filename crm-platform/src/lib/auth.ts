@@ -11,6 +11,7 @@ import bcrypt from "bcryptjs";
  * - セッション情報の拡張（tenantId, organizationId, role, permissions）
  */
 export const authConfig: NextAuthConfig = {
+  trustHost: true, // Railwayなどのクラウド環境で必要
   providers: [
     Credentials({
       name: "Credentials",
