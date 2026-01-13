@@ -257,7 +257,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   }
 
   // 実際のデータをカウントアップ
-  recentActivities.forEach((log) => {
+  recentActivities.forEach((log: typeof recentActivities[0]) => {
     const dateStr = format(log.createdAt, "yyyy-MM-dd");
     // NOTE: サーバーのタイムゾーンがUTCの場合、日付の境界が日本時間とずれる可能性があります。
     // 本格運用の際は date-fns-tz などでJST変換を挟むことを推奨しますが、まずは標準動作で進めます。
