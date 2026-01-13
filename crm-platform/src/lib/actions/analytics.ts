@@ -275,7 +275,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
 
   // B. 活動種別ごとの集計（JavaScriptで集計）
   const activityTypeCounts = new Map<string, number>();
-  activitiesByType.forEach((log) => {
+  activitiesByType.forEach((log: typeof activitiesByType[0]) => {
     const type = log.type as string;
     const count = activityTypeCounts.get(type) || 0;
     activityTypeCounts.set(type, count + 1);
