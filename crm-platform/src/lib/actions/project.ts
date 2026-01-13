@@ -36,7 +36,7 @@ export async function createProjectFromSearch(
     }
 
     // 2. トランザクション実行
-    const newProject = await prisma.$transaction(async (tx) => {
+    const newProject = await prisma.$transaction(async (tx: any) => {
       // (A) プロジェクト作成
       const project = await tx.project.create({
         data: {
