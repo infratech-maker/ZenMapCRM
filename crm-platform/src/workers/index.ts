@@ -211,7 +211,7 @@ async function processJob(job: Job<any, { jobId: string; tenantId: string; url: 
 const worker = new Worker(
   QUEUE_NAME,
   async (job: Job<any, { jobId: string; tenantId: string; url: string }, string>) => {
-    return await processJob(job);
+    return await processJob(job) as any;
   },
   {
     connection,
