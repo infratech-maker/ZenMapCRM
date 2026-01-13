@@ -227,11 +227,11 @@ const worker = new Worker(
 );
 
 // Workerイベントハンドラー
-worker.on("completed", (job: { id: string }) => {
+worker.on("completed", (job: Job<any, { jobId: string; tenantId: string; url: string }, string>) => {
   console.log(`✅ Job ${job.id} completed`);
 });
 
-worker.on("failed", (job: { id: string } | undefined, err: Error) => {
+worker.on("failed", (job: Job<any, { jobId: string; tenantId: string; url: string }, string> | undefined, err: Error) => {
   console.error(`❌ Job ${job?.id} failed:`, err);
 });
 
