@@ -48,7 +48,7 @@ export async function createProjectFromSearch(
 
       // (B) Lead用データの作成
       // MasterLeadのデータをLeadの初期値としてコピー
-      const leadsData = masterLeads.map(ml => {
+      const leadsData = masterLeads.map((ml: typeof masterLeads[0]) => {
         // dataカラムの型安全なキャスト
         const metaData = ml.data as Record<string, any> || {};
         

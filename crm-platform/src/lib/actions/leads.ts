@@ -139,7 +139,7 @@ export async function getLeads(
         searchPattern
       ) as Array<{ count: bigint }>;
 
-      const leads = leadsResult.map((lead) => ({
+      const leads = leadsResult.map((lead: LeadRow) => ({
         ...lead,
         createdAt: new Date(lead.createdAt),
         updatedAt: new Date(lead.updatedAt),
@@ -245,7 +245,7 @@ export async function importLeads(csvData: string) {
     },
   });
 
-  const existingUrls = new Set(existingLeads.map((lead) => lead.source));
+  const existingUrls = new Set(existingLeads.map((lead: typeof existingLeads[0]) => lead.source));
 
   // リードデータを準備
   const leadsToCreate: Array<{

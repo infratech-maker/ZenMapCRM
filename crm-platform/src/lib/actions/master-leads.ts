@@ -142,7 +142,7 @@ export async function getMasterLeads(
 
       // リード数を取得するために追加クエリ
       const masterLeadsWithCounts = await Promise.all(
-        masterLeadsResult.map(async (ml) => {
+        masterLeadsResult.map(async (ml: MasterLeadRow) => {
           const leadsCount = await prisma.lead.count({
             where: {
               masterLeadId: ml.id,
@@ -205,7 +205,7 @@ export async function getMasterLeads(
   const totalPages = Math.ceil(total / pageSize);
 
   return {
-    masterLeads: masterLeads.map((ml) => ({
+    masterLeads: masterLeads.map((ml: typeof masterLeads[0]) => ({
       id: ml.id,
       companyName: ml.companyName,
       phone: ml.phone,
@@ -339,7 +339,7 @@ export async function getMasterLeadsAsLeads(
 
     // ステータスフィルターがある場合は、該当するリードを持つマスターのみを返す
     const filteredMasterLeads = statuses && statuses.length > 0
-      ? masterLeads.filter((ml) => ml._count.leads > 0)
+      ? masterLeads.filter((ml: typeof masterLeads[0]) => ml._count.leads > 0)
       : masterLeads;
 
     // 総件数を取得
@@ -363,7 +363,7 @@ export async function getMasterLeadsAsLeads(
     const totalPages = Math.ceil(total / pageSize);
 
     // Lead型の形式に変換
-    const leads = filteredMasterLeads.map((ml) => {
+    const leads = filteredMasterLeads.map((ml: typeof filteredMasterLeads[0]) => {
       // 最新のリードを取得（なければマスターリードのデータを使用）
       const latestLead = ml.leads[0];
 
@@ -492,7 +492,7 @@ export async function getAllMasterLeadsAsLeadsForExport(
     });
 
     // Lead型の形式に変換
-    const leads = masterLeads.map((ml) => {
+    const leads = masterLeads.map((ml: typeof masterLeads[0]) => {
       const latestLead = ml.leads[0];
 
       return {

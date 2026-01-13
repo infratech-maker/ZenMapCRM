@@ -95,7 +95,7 @@ export async function getUsers() {
     });
 
     // ユーザーと招待を統合して返す
-    const userList = users.map((user) => ({
+    const userList = users.map((user: typeof users[0]) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -106,7 +106,7 @@ export async function getUsers() {
       createdAt: user.createdAt,
     }));
 
-    const invitationList = invitations.map((invitation) => ({
+    const invitationList = invitations.map((invitation: typeof invitations[0]) => ({
       id: invitation.id,
       name: null,
       email: invitation.email,
@@ -133,7 +133,7 @@ export async function getUsers() {
       },
     });
 
-    const orgIds = [organizationId, ...descendantOrgs.map((o) => o.descendantId)];
+    const orgIds = [organizationId, ...descendantOrgs.map((o: typeof descendantOrgs[0]) => o.descendantId)];
 
     const users = await prisma.user.findMany({
       where: {
@@ -208,7 +208,7 @@ export async function getUsers() {
       },
     });
 
-    const userList = users.map((user) => ({
+    const userList = users.map((user: typeof users[0]) => ({
       id: user.id,
       name: user.name,
       email: user.email,
@@ -219,7 +219,7 @@ export async function getUsers() {
       createdAt: user.createdAt,
     }));
 
-    const invitationList = invitations.map((invitation) => ({
+    const invitationList = invitations.map((invitation: typeof invitations[0]) => ({
       id: invitation.id,
       name: null,
       email: invitation.email,
@@ -287,7 +287,7 @@ export async function getOrganizations() {
       },
     });
 
-    const orgIds = [organizationId, ...descendantOrgs.map((o) => o.descendantId)];
+    const orgIds = [organizationId, ...descendantOrgs.map((o: typeof descendantOrgs[0]) => o.descendantId)];
 
     const organizations = await prisma.organization.findMany({
       where: {
