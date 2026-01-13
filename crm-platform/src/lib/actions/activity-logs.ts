@@ -3,7 +3,7 @@
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { revalidatePath } from "next/cache";
-import { ActivityType } from "@prisma/client";
+import { ActivityType } from "@/types/activity";
 
 /**
  * リードのアクティビティログを取得

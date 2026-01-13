@@ -20,7 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { getActivityLogs, createActivityLog } from "@/lib/actions/activity-logs";
-import { ActivityType } from "@prisma/client";
+import { ActivityType } from "@/types/activity";
 import { Phone, Mail, MapPin, MessageSquare, MoreHorizontal, Plus, Clock, User } from "lucide-react";
 import { format } from "date-fns";
 import { useRouter } from "next/navigation";
