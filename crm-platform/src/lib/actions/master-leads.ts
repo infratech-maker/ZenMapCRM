@@ -2,7 +2,6 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
-import { Prisma } from "@prisma/client";
 
 /**
  * マスターリード一覧を取得
