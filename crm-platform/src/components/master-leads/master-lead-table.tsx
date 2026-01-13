@@ -325,7 +325,7 @@ const columns: ColumnDef<MasterLead>[] = [
     accessorFn: (row: MasterLead) => {
       const data = row.data as any;
       if (!data || typeof data !== "object") return "-";
-      return data.address || data.住所 || row.original.address || "-";
+      return data.address || data.住所 || row.address || "-";
     },
     filterFn: (row, id, value) => {
       if (!value || (Array.isArray(value) && value.length === 0) || (typeof value === "string" && value.length === 0)) return true;
