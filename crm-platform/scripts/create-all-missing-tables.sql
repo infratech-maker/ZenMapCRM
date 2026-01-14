@@ -13,9 +13,10 @@ CREATE TABLE IF NOT EXISTS projects (
 CREATE INDEX IF NOT EXISTS idx_projects_tenant_id ON projects(tenant_id);
 
 -- 2. activity_logsテーブル
+-- leadsテーブルのidはUUID型なので、lead_idもUUID型にする
 CREATE TABLE IF NOT EXISTS activity_logs (
   id TEXT PRIMARY KEY, -- CUID形式
-  lead_id TEXT NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
+  lead_id UUID NOT NULL REFERENCES leads(id) ON DELETE CASCADE,
   type TEXT DEFAULT 'CALL',
   status TEXT,
   note TEXT,
