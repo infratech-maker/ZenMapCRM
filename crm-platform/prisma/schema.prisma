@@ -436,12 +436,12 @@ model ProductFieldDefinition {
 
 model CustomerFieldValue {
   id                String   @id @default(uuid())
-  tenantId          String
-  customerId        String
-  fieldDefinitionId String
+  tenantId          String   @map("tenant_id")
+  customerId        String   @map("customer_id")
+  fieldDefinitionId String  @map("field_definition_id")
   value             Json
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
 
   // Relations
   tenant          Tenant                 @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -461,23 +461,23 @@ model CustomerFieldValue {
 
 model Customer {
   id             String         @id @default(uuid())
-  tenantId       String
-  phoneNumber    String?
+  tenantId       String         @map("tenant_id")
+  phoneNumber    String?        @map("phone_number")
   email          String?
   name           String?
-  productId      String?
-  organizationId String?
+  productId      String?        @map("product_id")
+  organizationId String?        @map("organization_id")
   status         CustomerStatus @default(LEAD)
   source         String?
   notes          String?
   tags           Json? // string[]
-  isActive       Boolean        @default(true)
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
+  isActive       Boolean        @default(true) @map("is_active")
+  createdAt      DateTime       @default(now()) @map("created_at")
+  updatedAt      DateTime       @updatedAt @map("updated_at")
 
   // Audit fields
-  createdBy String?
-  updatedBy String?
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
   // Relations
   tenant       Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -586,20 +586,20 @@ model Deal {
 
 model KpiRecord {
   id             String   @id @default(uuid())
-  tenantId       String
-  organizationId String?
-  productId      String?
-  customerId     String?
-  kpiType        KpiType
+  tenantId       String   @map("tenant_id")
+  organizationId String?  @map("organization_id")
+  productId      String?  @map("product_id")
+  customerId     String?  @map("customer_id")
+  kpiType        KpiType  @map("kpi_type")
   value          Decimal  @db.Decimal(15, 4)
-  recordDate     DateTime @db.Date
-  periodType     String
+  recordDate     DateTime @db.Date @map("record_date")
+  periodType     String   @map("period_type")
   notes          String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Audit fields
-  createdBy String?
+  createdBy String? @map("created_by")
 
   // Relations
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -649,16 +649,16 @@ model PlRecord {
 
 model Simulation {
   id                       String   @id @default(uuid())
-  tenantId                 String
+  tenantId                 String   @map("tenant_id")
   name                     String
   description              String?
   parameters               String // JSON string
-  projectedRevenue         Decimal? @db.Decimal(15, 2)
-  projectedGrossProfit     Decimal? @db.Decimal(15, 2)
-  projectedOperatingProfit Decimal? @db.Decimal(15, 2)
-  createdBy                String?
-  createdAt                DateTime @default(now())
-  updatedAt                DateTime @updatedAt
+  projectedRevenue         Decimal? @db.Decimal(15, 2) @map("projected_revenue")
+  projectedGrossProfit     Decimal? @db.Decimal(15, 2) @map("projected_gross_profit")
+  projectedOperatingProfit Decimal? @db.Decimal(15, 2) @map("projected_operating_profit")
+  createdBy                String?  @map("created_by")
+  createdAt                DateTime @default(now()) @map("created_at")
+  updatedAt                DateTime @updatedAt @map("updated_at")
 
   // Relations
   tenant    Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -675,11 +675,11 @@ model Simulation {
 
 model Project {
   id          String   @id @default(cuid())
-  tenantId    String
+  tenantId    String   @map("tenant_id")
   name        String // プロジェクト名（例: "渋谷イタリアン"）
   description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
 
   // Relations
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -695,15 +695,15 @@ model Project {
 
 model MasterLead {
   id          String  @id @default(cuid())
-  companyName String // 検索用
+  companyName String  @map("company_name") // 検索用
   phone       String? // 重複チェック用
   address     String?
   source      String // "tabelog.com" 等
   data        Json // 詳細データ（leads.dataと同じ構造）
 
   // 作成日時
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // リレーション
   leads      Lead[]
@@ -737,19 +737,19 @@ model LeadVector {
 
 model ScrapingJob {
   id          String            @id @default(uuid())
-  tenantId    String
+  tenantId    String            @map("tenant_id")
   url         String
   status      ScrapingJobStatus @default(PENDING)
-  bullmqJobId String?
+  bullmqJobId String?           @map("bullmq_job_id")
   result      Json?
   error       String?
-  startedAt   DateTime?
-  completedAt DateTime?
-  createdAt   DateTime          @default(now())
-  updatedAt   DateTime          @updatedAt
+  startedAt   DateTime?          @map("started_at")
+  completedAt DateTime?          @map("completed_at")
+  createdAt   DateTime          @default(now()) @map("created_at")
+  updatedAt   DateTime          @updatedAt @map("updated_at")
 
   // Audit fields
-  createdBy String?
+  createdBy String? @map("created_by")
 
   // Relations
   tenant  Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
