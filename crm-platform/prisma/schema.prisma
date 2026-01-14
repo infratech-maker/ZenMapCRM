@@ -224,13 +224,13 @@ model Organization {
 
 model UserOrganization {
   id             String   @id @default(uuid())
-  userId         String
-  organizationId String
-  tenantId       String
-  isPrimary      Boolean  @default(false)
-  roleInOrg      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  userId         String   @map("user_id")
+  organizationId String  @map("organization_id")
+  tenantId       String   @map("tenant_id")
+  isPrimary      Boolean  @default(false) @map("is_primary")
+  roleInOrg      String?  @map("role_in_org")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
 
   // Relations
   user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -288,13 +288,13 @@ model Permission {
 
 model UserRole {
   id         String    @id @default(uuid())
-  userId     String
-  roleId     String
-  tenantId   String
-  assignedBy String?
-  expiresAt  DateTime?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
+  userId     String    @map("user_id")
+  roleId     String    @map("role_id")
+  tenantId   String    @map("tenant_id")
+  assignedBy String?   @map("assigned_by")
+  expiresAt  DateTime? @map("expires_at")
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
 
   // Relations
   user           User   @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -361,9 +361,9 @@ model Invitation {
 // ============================================
 
 model OrganizationClosure {
-  tenantId     String
-  ancestorId   String
-  descendantId String
+  tenantId     String   @map("tenant_id")
+  ancestorId   String   @map("ancestor_id")
+  descendantId String  @map("descendant_id")
   depth        Int
 
   // Relations
