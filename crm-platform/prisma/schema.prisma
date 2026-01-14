@@ -333,14 +333,14 @@ model Invitation {
   id             String           @id @default(uuid())
   email          String
   token          String           @unique
-  tenantId       String
-  organizationId String?
-  roleId         String?
-  expiresAt      DateTime
+  tenantId       String           @map("tenant_id")
+  organizationId String?          @map("organization_id")
+  roleId         String?          @map("role_id")
+  expiresAt      DateTime         @map("expires_at")
   status         InvitationStatus @default(PENDING)
-  invitedBy      String
-  createdAt      DateTime         @default(now())
-  updatedAt      DateTime         @updatedAt
+  invitedBy      String           @map("invited_by")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
 
   // Relations
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
