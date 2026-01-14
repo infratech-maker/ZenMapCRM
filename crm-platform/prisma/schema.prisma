@@ -113,9 +113,9 @@ model Tenant {
   id        String   @id @default(uuid())
   name      String
   slug      String   @unique
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  isActive  Boolean  @default(true) @map("is_active")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
   // Relations
   users                   User[]
@@ -144,19 +144,19 @@ model Tenant {
 
 model User {
   id           String    @id @default(uuid())
-  tenantId     String
+  tenantId     String    @map("tenant_id")
   email        String
-  passwordHash String
+  passwordHash String    @map("password_hash")
   name         String
-  phoneNumber  String?
-  avatarUrl    String?
-  isActive     Boolean   @default(true)
-  lastLoginAt  DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  phoneNumber  String?   @map("phone_number")
+  avatarUrl    String?   @map("avatar_url")
+  isActive     Boolean   @default(true) @map("is_active")
+  lastLoginAt  DateTime? @map("last_login_at")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Manager-Subordinate relationship (self-referencing)
-  managerId    String?
+  managerId    String? @map("manager_id")
   manager      User?   @relation("ManagerSubordinates", fields: [managerId], references: [id])
   subordinates User[]  @relation("ManagerSubordinates")
 
@@ -312,10 +312,10 @@ model UserRole {
 
 model RolePermission {
   id           String   @id @default(uuid())
-  roleId       String
-  permissionId String
-  tenantId     String
-  createdAt    DateTime @default(now())
+  roleId       String   @map("role_id")
+  permissionId String  @map("permission_id")
+  tenantId     String   @map("tenant_id")
+  createdAt    DateTime @default(now()) @map("created_at")
 
   // Relations
   role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
@@ -410,19 +410,19 @@ model Product {
 
 model ProductFieldDefinition {
   id           String    @id @default(uuid())
-  tenantId     String
-  productId    String
-  fieldKey     String
-  fieldLabel   String
-  fieldType    FieldType
-  isRequired   Boolean   @default(false)
-  isUnique     Boolean   @default(false)
-  defaultValue String?
+  tenantId     String    @map("tenant_id")
+  productId    String    @map("product_id")
+  fieldKey     String    @map("field_key")
+  fieldLabel   String    @map("field_label")
+  fieldType    FieldType @map("field_type")
+  isRequired   Boolean   @default(false) @map("is_required")
+  isUnique     Boolean   @default(false) @map("is_unique")
+  defaultValue String?   @map("default_value")
   options      Json? // Array<{ label: string; value: string }>
-  displayOrder Int       @default(0)
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  displayOrder Int       @default(0) @map("display_order")
+  isActive     Boolean   @default(true) @map("is_active")
+  createdAt    DateTime  @default(now()) @map("created_at")
+  updatedAt    DateTime  @updatedAt @map("updated_at")
 
   // Relations
   tenant  Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -547,23 +547,23 @@ model Lead {
 
 model Deal {
   id                String     @id @default(uuid())
-  tenantId          String
-  customerId        String
-  productId         String?
-  organizationId    String?
+  tenantId          String     @map("tenant_id")
+  customerId        String     @map("customer_id")
+  productId         String?    @map("product_id")
+  organizationId    String?    @map("organization_id")
   name              String
   status            DealStatus @default(PROSPECTING)
   amount            Decimal?   @db.Decimal(15, 2)
-  expectedCloseDate DateTime?  @db.Date
-  actualCloseDate   DateTime?  @db.Date
+  expectedCloseDate DateTime?  @db.Date @map("expected_close_date")
+  actualCloseDate   DateTime?  @db.Date @map("actual_close_date")
   probability       Decimal?   @db.Decimal(5, 2) // 0-100 (%)
   notes             String?
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
+  createdAt         DateTime   @default(now()) @map("created_at")
+  updatedAt         DateTime   @updatedAt @map("updated_at")
 
   // Audit fields
-  createdBy String?
-  updatedBy String?
+  createdBy String? @map("created_by")
+  updatedBy String? @map("updated_by")
 
   // Relations
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -616,22 +616,22 @@ model KpiRecord {
 
 model PlRecord {
   id             String     @id @default(uuid())
-  tenantId       String
-  organizationId String?
-  productId      String?
-  customerId     String?
-  itemType       PlItemType
-  amount         Decimal    @db.Decimal(15, 2)
-  recordDate     DateTime   @db.Date
-  periodType     String
-  isActual       String     @default("actual") // "actual" | "forecast" | "simulation"
-  simulationId   String?
+  tenantId       String     @map("tenant_id")
+  organizationId String?    @map("organization_id")
+  productId      String?     @map("product_id")
+  customerId     String?      @map("customer_id")
+  itemType       PlItemType   @map("item_type")
+  amount         Decimal      @db.Decimal(15, 2)
+  recordDate     DateTime     @db.Date @map("record_date")
+  periodType     String       @map("period_type")
+  isActual       String       @default("actual") @map("is_actual") // "actual" | "forecast" | "simulation"
+  simulationId   String?      @map("simulation_id")
   description    String?
-  createdAt      DateTime   @default(now())
-  updatedAt      DateTime   @updatedAt
+  createdAt      DateTime     @default(now()) @map("created_at")
+  updatedAt      DateTime     @updatedAt @map("updated_at")
 
   // Audit fields
-  createdBy String?
+  createdBy String? @map("created_by")
 
   // Relations
   tenant       Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
@@ -767,7 +767,7 @@ model ScrapingJob {
 
 model ActivityLog {
   id     String @id @default(cuid())
-  leadId String
+  leadId String @map("lead_id")
   lead   Lead   @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   type   ActivityType @default(CALL)
@@ -775,12 +775,12 @@ model ActivityLog {
   note   String? // 活動メモ
 
   // 誰がやったか
-  tenantId       String
-  organizationId String?
-  userId         String
-  user           User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenantId       String   @map("tenant_id")
+  organizationId String?  @map("organization_id")
+  userId         String   @map("user_id")
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  createdAt DateTime @default(now())
+  createdAt DateTime @default(now()) @map("created_at")
 
   @@index([leadId])
   @@index([userId])
