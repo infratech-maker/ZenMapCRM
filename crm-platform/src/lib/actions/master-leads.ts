@@ -94,9 +94,9 @@ export async function getMasterLeads(
           ml.updated_at as "updatedAt",
           COUNT(l.id)::int as "leadsCount"
         FROM master_leads ml
-        LEFT JOIN leads l ON l."masterLeadId" = ml.id
-          AND l."tenantId" = $1::uuid
-          AND l."organizationId" = $2::uuid
+        LEFT JOIN leads l ON l.master_lead_id = ml.id
+          AND l.tenant_id = $1::uuid
+          AND l.organization_id = $2::uuid
         WHERE (
           company_name ILIKE $3
           OR phone ILIKE $3
