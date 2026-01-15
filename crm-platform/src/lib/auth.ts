@@ -105,45 +105,42 @@ export const authConfig: NextAuthConfig = {
           throw new Error("Invalid email or password");
         }
 
-        // 主所属組織とロールを取得（OrganizationMemberを優先、なければ既存方式を使用）
-        let primaryOrganization: { id: string } | null = null;
-        let roleName = "User";
+        // アクティブな組織とロールを取得（1つだけ）
+        // isPrimary: true を優先し、なければ createdAt が古い順で1つだけ取得
+        let activeOrganizationId: string | null = null;
+        let activeOrganizationRole = "User";
         const permissions = new Set<string>();
-        const organizationMemberships: Array<{ id: string; name: string; roleId: string; roleName: string }> = [];
 
-        // 新規: OrganizationMemberから取得
+        // 新規: OrganizationMemberから取得（1つだけ）
         if (user.organizationMembers && user.organizationMembers.length > 0) {
-          const primaryMember = user.organizationMembers.find(m => m.isPrimary) || user.organizationMembers[0];
-          primaryOrganization = { id: primaryMember.organization.id };
-          roleName = primaryMember.role.name;
+          // isPrimary: true を優先、なければ createdAt が古い順で1つだけ取得
+          const activeMember = user.organizationMembers.find(m => m.isPrimary) 
+            || user.organizationMembers.sort((a, b) => 
+                a.createdAt.getTime() - b.createdAt.getTime()
+              )[0];
+          
+          activeOrganizationId = activeMember.organization.id;
+          activeOrganizationRole = activeMember.role.name;
 
-          // すべての組織メンバーシップを収集
-          for (const member of user.organizationMembers) {
-            organizationMemberships.push({
-              id: member.organization.id,
-              name: member.organization.name,
-              roleId: member.role.id,
-              roleName: member.role.name,
-            });
-
-            // 権限を収集
-            for (const rolePermission of member.role.rolePermissions) {
-              const permission = rolePermission.permission;
-              permissions.add(`${permission.resource}:${permission.action}`);
-            }
+          // アクティブな組織のロールの権限のみを収集
+          for (const rolePermission of activeMember.role.rolePermissions) {
+            const permission = rolePermission.permission;
+            permissions.add(`${permission.resource}:${permission.action}`);
           }
         } else {
           // 後方互換性: 既存のUserOrganizationとUserRoleから取得
-          primaryOrganization = user.userOrganizations[0]?.organization || null;
+          const primaryOrg = user.userOrganizations[0]?.organization;
+          activeOrganizationId = primaryOrg?.id || null;
           
-          for (const userRole of user.userRoles) {
-            for (const rolePermission of userRole.role.rolePermissions) {
+          // 最初のロールの権限を取得
+          const firstRole = user.userRoles[0];
+          if (firstRole) {
+            activeOrganizationRole = firstRole.role.name;
+            for (const rolePermission of firstRole.role.rolePermissions) {
               const permission = rolePermission.permission;
               permissions.add(`${permission.resource}:${permission.action}`);
             }
           }
-          
-          roleName = user.userRoles[0]?.role.name || "User";
         }
 
         return {
@@ -151,10 +148,9 @@ export const authConfig: NextAuthConfig = {
           email: user.email,
           name: user.name,
           tenantId: user.tenantId,
-          organizationId: primaryOrganization?.id || null,
-          role: roleName,
+          activeOrganizationId,
+          activeOrganizationRole,
           permissions: Array.from(permissions),
-          organizationMemberships, // 新規: 所属組織一覧
         };
       },
     }),
@@ -168,41 +164,46 @@ export const authConfig: NextAuthConfig = {
       if (user) {
         token.id = user.id;
         token.tenantId = user.tenantId;
-        token.organizationId = user.organizationId;
-        token.role = user.role;
-        token.permissions = user.permissions;
-        token.organizationMemberships = (user as any).organizationMemberships || [];
+        token.activeOrganizationId = (user as any).activeOrganizationId || null;
+        token.activeOrganizationRole = (user as any).activeOrganizationRole || "User";
+        token.permissions = (user as any).permissions || [];
       }
       
       // 組織切り替え時（updateセッション時）
-      if (trigger === "update" && token.organizationId) {
-        // 組織切り替え後のロールと権限を再取得
-        const activeOrgId = token.organizationId as string;
-        const memberships = (token.organizationMemberships || []) as Array<{
-          id: string;
-          name: string;
-          roleId: string;
-          roleName: string;
-        }>;
+      if (trigger === "update") {
+        const newActiveOrgId = (token as any).activeOrganizationId as string | null;
         
-        const activeMembership = memberships.find(m => m.id === activeOrgId);
-        if (activeMembership) {
-          // アクティブな組織のロールと権限を取得
-          const role = await prisma.role.findUnique({
-            where: { id: activeMembership.roleId },
+        if (newActiveOrgId && token.id) {
+          // 組織切り替え後のロールと権限をDBから再取得
+          const organizationMember = await prisma.organizationMember.findFirst({
+            where: {
+              userId: token.id as string,
+              organizationId: newActiveOrgId,
+              OR: [
+                { expiresAt: null },
+                { expiresAt: { gt: new Date() } },
+              ],
+            },
             include: {
-              rolePermissions: {
+              role: {
                 include: {
-                  permission: true,
+                  rolePermissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
                 },
               },
             },
           });
           
-          if (role) {
-            token.role = role.name;
+          if (organizationMember) {
+            token.activeOrganizationId = newActiveOrgId;
+            token.activeOrganizationRole = organizationMember.role.name;
+            
+            // アクティブな組織のロールの権限を取得
             const permissions = new Set<string>();
-            for (const rolePermission of role.rolePermissions) {
+            for (const rolePermission of organizationMember.role.rolePermissions) {
               permissions.add(`${rolePermission.permission.resource}:${rolePermission.permission.action}`);
             }
             token.permissions = Array.from(permissions);
@@ -217,15 +218,9 @@ export const authConfig: NextAuthConfig = {
       if (session.user) {
         session.user.id = token.id as string;
         session.user.tenantId = token.tenantId as string;
-        session.user.organizationId = token.organizationId as string | null;
-        session.user.role = token.role as string;
+        session.user.activeOrganizationId = token.activeOrganizationId as string | null;
+        session.user.activeOrganizationRole = token.activeOrganizationRole as string;
         session.user.permissions = token.permissions as string[];
-        session.user.organizationMemberships = (token.organizationMemberships || []) as Array<{
-          id: string;
-          name: string;
-          roleId: string;
-          roleName: string;
-        }>;
       }
       return session;
     },

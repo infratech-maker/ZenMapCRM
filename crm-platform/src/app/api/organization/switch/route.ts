@@ -1,4 +1,5 @@
 import { auth, update } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
 /**
@@ -28,10 +29,24 @@ export async function POST(request: Request) {
       );
     }
 
-    // ユーザーが指定された組織に所属しているか確認
-    const membership = session.user.organizationMemberships.find(
-      (m) => m.id === organizationId
-    );
+    // ユーザーが指定された組織に所属しているかDBから確認
+    const membership = await prisma.organizationMember.findFirst({
+      where: {
+        userId: session.user.id,
+        organizationId,
+        OR: [
+          { expiresAt: null },
+          { expiresAt: { gt: new Date() } },
+        ],
+      },
+      include: {
+        role: {
+          select: {
+            name: true,
+          },
+        },
+      },
+    });
 
     if (!membership) {
       return NextResponse.json(
@@ -40,15 +55,15 @@ export async function POST(request: Request) {
       );
     }
 
-    // セッションを更新
+    // セッションを更新（activeOrganizationIdを変更）
     await update({
-      organizationId,
+      activeOrganizationId: organizationId,
     });
 
     return NextResponse.json({
       success: true,
       organizationId,
-      role: membership.roleName,
+      role: membership.role.name,
     });
   } catch (error) {
     console.error("Error switching organization:", error);

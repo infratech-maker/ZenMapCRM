@@ -22,9 +22,9 @@ export async function getUsers() {
     redirect("/login");
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.activeOrganizationRole;
   const tenantId = session.user.tenantId;
-  const organizationId = session.user.organizationId;
+  const organizationId = session.user.activeOrganizationId;
 
   // Userロールはアクセス権限なし
   if (userRole === "User") {

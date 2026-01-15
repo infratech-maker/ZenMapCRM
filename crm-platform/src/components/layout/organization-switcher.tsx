@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import {
@@ -12,20 +12,59 @@ import {
 } from "@/components/ui/select";
 import { Building2 } from "lucide-react";
 
+interface Organization {
+  id: string;
+  name: string;
+  code: string | null;
+  type: string;
+  isActive: boolean;
+  role: {
+    id: string;
+    name: string;
+    description: string | null;
+  };
+  isPrimary: boolean;
+  expiresAt: Date | null;
+  createdAt: Date;
+}
+
 export function OrganizationSwitcher() {
   const { data: session, update } = useSession();
   const router = useRouter();
   const [isSwitching, setIsSwitching] = useState(false);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    // APIから組織一覧を取得
+    const fetchOrganizations = async () => {
+      try {
+        const response = await fetch("/api/organizations/mine");
+        if (!response.ok) {
+          throw new Error("Failed to fetch organizations");
+        }
+        const data = await response.json();
+        setOrganizations(data.organizations || []);
+      } catch (error) {
+        console.error("Error fetching organizations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    if (session?.user) {
+      fetchOrganizations();
+    }
+  }, [session]);
 
   if (!session?.user) {
     return null;
   }
 
-  const memberships = session.user.organizationMemberships || [];
-  const currentOrgId = session.user.organizationId;
+  const currentOrgId = session.user.activeOrganizationId;
 
   // 複数の組織に所属していない場合は表示しない
-  if (memberships.length <= 1) {
+  if (!isLoading && organizations.length <= 1) {
     return null;
   }
 
@@ -36,20 +75,10 @@ export function OrganizationSwitcher() {
 
     setIsSwitching(true);
     try {
-      const response = await fetch("/api/organization/switch", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ organizationId }),
+      // セッションを更新（activeOrganizationIdを変更）
+      await update({
+        activeOrganizationId: organizationId,
       });
-
-      if (!response.ok) {
-        throw new Error("Failed to switch organization");
-      }
-
-      // セッションを更新
-      await update();
       
       // ページをリロードして新しい組織のデータを表示
       router.refresh();
@@ -61,7 +90,16 @@ export function OrganizationSwitcher() {
     }
   };
 
-  const currentOrg = memberships.find((m) => m.id === currentOrgId);
+  const currentOrg = organizations.find((org) => org.id === currentOrgId);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-2">
+        <Building2 className="h-4 w-4 text-gray-500" />
+        <div className="h-10 w-[200px] rounded-md border border-gray-200 bg-gray-50 animate-pulse" />
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center gap-2">
@@ -77,7 +115,7 @@ export function OrganizationSwitcher() {
               <span className="flex items-center gap-2">
                 <span>{currentOrg.name}</span>
                 <span className="text-xs text-gray-500">
-                  ({currentOrg.roleName})
+                  ({currentOrg.role.name})
                 </span>
               </span>
             ) : (
@@ -86,12 +124,12 @@ export function OrganizationSwitcher() {
           </SelectValue>
         </SelectTrigger>
         <SelectContent>
-          {memberships.map((membership) => (
-            <SelectItem key={membership.id} value={membership.id}>
+          {organizations.map((org) => (
+            <SelectItem key={org.id} value={org.id}>
               <div className="flex flex-col">
-                <span>{membership.name}</span>
+                <span>{org.name}</span>
                 <span className="text-xs text-gray-500">
-                  {membership.roleName}
+                  {org.role.name}
                 </span>
               </div>
             </SelectItem>

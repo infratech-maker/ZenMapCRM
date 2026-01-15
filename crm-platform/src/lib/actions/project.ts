@@ -23,7 +23,7 @@ export async function createProjectFromSearch(
     }
 
     const tenantId = session.user.tenantId;
-    const organizationId = session.user.organizationId;
+    const organizationId = session.user.activeOrganizationId;
     const userId = session.user.id;
 
     // 1. 対象のMasterLeadを取得
