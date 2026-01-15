@@ -248,8 +248,8 @@ export async function getOrganizations() {
   }
 
   const tenantId = session.user.tenantId;
-  const userRole = session.user.role;
-  const organizationId = session.user.organizationId;
+  const userRole = session.user.activeOrganizationRole;
+  const organizationId = session.user.activeOrganizationId;
 
   if (userRole === "User") {
     throw new Error("Access denied: Insufficient permissions");
@@ -367,7 +367,7 @@ export async function createUser(
     redirect("/login");
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.activeOrganizationRole;
   const tenantId = session.user.tenantId;
 
   // 権限チェック
@@ -467,7 +467,7 @@ export async function inviteUser(
     redirect("/login");
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.activeOrganizationRole;
   const tenantId = session.user.tenantId;
 
   // 権限チェック

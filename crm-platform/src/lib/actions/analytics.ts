@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/auth/get-current-org";
 import { startOfMonth, endOfMonth, subDays, format } from "date-fns";
 
 // UIコンポーネントで使いやすいように型定義をエクスポート
@@ -67,55 +68,20 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     const endOfCurrentMonth = endOfMonth(now);
     const thirtyDaysAgo = subDays(now, 30); // トレンドグラフは過去30日分を表示
 
-    // ユーザーの主所属組織を取得
-    let userOrg;
+    // 現在アクティブな組織IDを取得
+    let currentOrgId: string;
     try {
-      console.log("getDashboardMetrics: Fetching userOrg for userId:", session.user.id);
-      userOrg = await prisma.userOrganization.findFirst({
-        where: {
-          userId: session.user.id,
-          isPrimary: true,
-        },
-        select: {
-          organizationId: true,
-        },
-      });
-      console.log("getDashboardMetrics: userOrg retrieved", {
-        hasOrg: !!userOrg,
-        organizationId: userOrg?.organizationId,
-      });
+      currentOrgId = await getCurrentOrgId();
+      console.log("getDashboardMetrics: Current organization ID:", currentOrgId);
     } catch (error) {
-      console.error("getDashboardMetrics: Error fetching userOrg:", error);
+      console.error("getDashboardMetrics: Error getting current org ID:", error);
       // エラー時は空のデータを返す
-      const now = new Date();
       const emptyTrendData: { date: string; count: number }[] = [];
       for (let i = 0; i <= 30; i++) {
         const date = subDays(now, 30 - i);
         const dateStr = format(date, "yyyy-MM-dd");
         emptyTrendData.push({ date: dateStr, count: 0 });
       }
-      return {
-        summary: {
-          totalActivities: 0,
-          totalLeads: 0,
-          avgActivitiesPerLead: "0",
-        },
-        pieChartData: [],
-        trendChartData: emptyTrendData,
-      };
-    }
-
-    if (!userOrg || !userOrg.organizationId) {
-      // 組織が設定されていない場合は空のデータを返す
-      console.warn("getDashboardMetrics: No organization found for user:", session.user.id);
-      // トレンドグラフ用の30日分の日付を生成
-      const emptyTrendData: { date: string; count: number }[] = [];
-      for (let i = 0; i <= 30; i++) {
-        const date = subDays(now, 30 - i);
-        const dateStr = format(date, "yyyy-MM-dd");
-        emptyTrendData.push({ date: dateStr, count: 0 });
-      }
-
       return {
         summary: {
           totalActivities: 0,
@@ -128,15 +94,15 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     }
 
   // データベースへのクエリを並列実行して高速化
-  // organizationIdは既にnullチェック済みだが、念のため安全に処理
+  // organizationIdフィルタを必須化
   const activityLogWhere = {
     tenantId,
-    organizationId: userOrg.organizationId,
+    organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
   };
 
   const leadWhere = {
     tenantId,
-    organizationId: userOrg.organizationId,
+    organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
   };
 
   let monthActivitiesCount, activitiesByType, recentActivities, totalLeadsCount;
@@ -144,7 +110,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
   try {
     console.log("getDashboardMetrics: Starting database queries", {
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId,
     });
     
     // 各クエリを個別に実行してエラーを特定しやすくする
@@ -220,7 +186,7 @@ export async function getDashboardMetrics(): Promise<DashboardMetrics> {
     console.error("getDashboardMetrics: Database query error:", error);
     console.error("Error details:", {
       tenantId,
-      organizationId: userOrg?.organizationId,
+      organizationId: currentOrgId,
       error: error instanceof Error ? error.message : String(error),
       stack: error instanceof Error ? error.stack : undefined,
     });

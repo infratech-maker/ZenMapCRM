@@ -16,7 +16,7 @@ export default async function UsersPage() {
   }
 
   // 権限チェック: Userロールはアクセス不可
-  if (session.user.role === "User") {
+  if (session.user.activeOrganizationRole === "User") {
     redirect("/dashboard");
   }
 
