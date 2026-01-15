@@ -50,12 +50,13 @@ export async function startUbereatsScraping(
     const scrapingJob = await prisma.scrapingJob.create({
       data: {
         tenantId,
-        organizationId,
-        source: 'ubereats',
-        status: 'pending',
-        config: {
+        url: areaUrl,
+        status: 'PENDING', // ScrapingJobStatus enumは大文字
+        result: {
+          source: 'ubereats',
           areaUrl,
           maxItems,
+          organizationId,
         } as any,
         createdBy: session.user.id,
       },
