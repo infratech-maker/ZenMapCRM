@@ -1,6 +1,7 @@
 "use client";
 
 import { signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
 import { User, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,8 +18,13 @@ interface UserNavProps {
 }
 
 export function UserNav({ userName, userEmail, userRole }: UserNavProps) {
+  const router = useRouter();
+
   const handleSignOut = async () => {
-    await signOut({ callbackUrl: "/login" });
+    // NextAuthのsignOutを呼び出し、リダイレクトは無効化
+    await signOut({ redirect: false });
+    // 明示的に相対パスでリダイレクト
+    router.push("/login");
   };
 
   return (
