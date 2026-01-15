@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Phone } from "lucide-react"
 import Link from "next/link"
+import { getCurrentOrgId } from "@/lib/auth/get-current-org"
 
 export default async function ProjectDetailPage({ 
   params 
@@ -21,13 +22,29 @@ export default async function ProjectDetailPage({
   const { projectId } = await params;
   const tenantId = session.user.tenantId;
 
+  // 現在アクティブな組織IDを取得
+  let currentOrgId: string;
+  try {
+    currentOrgId = await getCurrentOrgId();
+  } catch (error) {
+    redirect("/dashboard");
+  }
+
   const project = await prisma.project.findFirst({
     where: { 
       id: projectId,
       tenantId: tenantId,
+      leads: {
+        some: {
+          organizationId: currentOrgId,
+        },
+      },
     },
     include: {
       leads: {
+        where: {
+          organizationId: currentOrgId,
+        },
         orderBy: { createdAt: 'desc' },
         include: {
           masterLead: {
