@@ -7,6 +7,7 @@ import { LeadDetailSheet } from "./lead-detail-sheet";
 import { LeadSearch } from "./lead-search";
 import { LeadFilter } from "./lead-filter";
 import { GoogleMapsScraperDialog } from "./google-maps-scraper-dialog";
+import { UbereatsScraperDialog } from "./ubereats-scraper-dialog";
 import { AISearchDialog } from "./ai-search-dialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
@@ -176,6 +177,7 @@ export function LeadsPageClient({
         <div className="flex items-center gap-2">
           <AISearchDialog />
           <GoogleMapsScraperDialog />
+          <UbereatsScraperDialog />
           <Link href="/dashboard/leads/import">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
