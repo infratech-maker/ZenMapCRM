@@ -25,14 +25,15 @@
 -- DROP TABLE IF EXISTS organization_members CASCADE;
 
 -- organization_membersテーブルを作成
+-- 注意: Staging環境ではusers.id、organizations.id、roles.id、tenants.idがTEXT型のため、TEXT型を使用
 CREATE TABLE IF NOT EXISTS organization_members (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
-  organization_id UUID NOT NULL,
-  role_id UUID NOT NULL,
-  tenant_id UUID NOT NULL, -- tenants.idはUUID型
+  id TEXT PRIMARY KEY DEFAULT gen_random_uuid()::text,
+  user_id TEXT NOT NULL,
+  organization_id TEXT NOT NULL,
+  role_id TEXT NOT NULL,
+  tenant_id TEXT NOT NULL,
   is_primary BOOLEAN NOT NULL DEFAULT false,
-  assigned_by UUID, -- 割り当てたユーザーID（nullable）
+  assigned_by TEXT, -- 割り当てたユーザーID（nullable）
   expires_at TIMESTAMP WITH TIME ZONE, -- 有効期限（nullable）
   created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT NOW(),
