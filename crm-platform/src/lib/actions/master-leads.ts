@@ -479,20 +479,8 @@ export async function getMasterLeadDetail(masterLeadId: string) {
 
   const { tenantId } = session.user;
 
-  // ユーザーの主所属組織を取得
-  const userOrg = await prisma.userOrganization.findFirst({
-    where: {
-      userId: session.user.id,
-      isPrimary: true,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
-
-  if (!userOrg) {
-    throw new Error("Organization not found");
-  }
+  // 現在アクティブな組織IDを取得
+  const currentOrgId = await getCurrentOrgId();
 
   const masterLead = await prisma.masterLead.findUnique({
     where: { id: masterLeadId },
@@ -500,7 +488,7 @@ export async function getMasterLeadDetail(masterLeadId: string) {
       leads: {
         where: {
           tenantId,
-          organizationId: userOrg.organizationId,
+          organizationId: currentOrgId,
         },
         orderBy: {
           createdAt: "desc",
@@ -512,7 +500,7 @@ export async function getMasterLeadDetail(masterLeadId: string) {
           leads: {
             where: {
               tenantId,
-              organizationId: userOrg.organizationId,
+              organizationId: currentOrgId,
             },
           },
         },
