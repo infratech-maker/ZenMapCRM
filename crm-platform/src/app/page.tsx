@@ -1,11 +1,15 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-slate-950 text-white flex flex-col">
+    <div className="min-h-screen text-white flex flex-col relative">
+      {/* アニメーション背景 */}
+      <AnimatedBackground />
+
       {/* Header */}
-      <header className="w-full px-6 py-4 sm:px-8 sm:py-6 flex items-center justify-between">
+      <header className="relative z-10 w-full px-6 py-4 sm:px-8 sm:py-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="relative flex h-8 w-8 items-center justify-center">
             <div className="absolute inset-0 rounded-full bg-purple-600 blur opacity-40 animate-pulse" />
@@ -26,40 +30,9 @@ export default function HomePage() {
       </header>
 
       {/* Hero Section */}
-      <main className="flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-        {/* Background with radial gradient - creates a "map emerging" effect */}
-        <div 
-          className="absolute inset-0"
-          style={{
-            background: 'radial-gradient(circle at center, rgb(15 23 42) 0%, rgb(2 6 23) 50%, rgb(2 6 23) 100%)',
-          }}
-        />
-        
-        {/* Background image overlay (if exists) */}
-        <div className="absolute inset-0 opacity-20">
-          {/* 画像が存在する場合は表示、存在しない場合はグラデーション */}
-          <div className="relative w-full h-full">
-            {/* 背景画像: 画像が存在する場合は表示 */}
-            <div 
-              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-              style={{
-                backgroundImage: 'url(/images/japan-network-map.png)',
-                backgroundSize: 'cover',
-                backgroundPosition: 'center',
-              }}
-            />
-            {/* フォールバック: 画像が存在しない場合のグラデーション */}
-            <div 
-              className="absolute inset-0"
-              style={{
-                background: 'radial-gradient(circle at center, rgba(88, 28, 135, 0.2) 0%, transparent 70%)',
-              }}
-            />
-          </div>
-        </div>
-
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
         {/* Main Content */}
-        <div className="relative z-10 max-w-4xl mx-auto text-center">
+        <div className="max-w-4xl mx-auto text-center">
           {/* Catch Copy */}
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-wide mb-6 leading-tight">
             47都道府県を、
@@ -84,14 +57,10 @@ export default function HomePage() {
             </Button>
           </Link>
         </div>
-
-        {/* Decorative elements */}
-        <div className="absolute top-1/4 left-1/4 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
       </main>
 
       {/* Footer */}
-      <footer className="w-full px-6 py-4 sm:px-8 text-center text-sm text-slate-500 border-t border-slate-900/50">
+      <footer className="relative z-10 w-full px-6 py-4 sm:px-8 text-center text-sm text-slate-500 border-t border-slate-900/50">
         <p>© 2026 Zen-Map. All rights reserved.</p>
       </footer>
     </div>

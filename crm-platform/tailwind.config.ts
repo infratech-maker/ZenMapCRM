@@ -50,6 +50,40 @@ const config: Config = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      keyframes: {
+        "aurora-move": {
+          "0%, 100%": {
+            transform: "translate(0, 0) scale(1)",
+            opacity: "0.3",
+          },
+          "25%": {
+            transform: "translate(10%, 10%) scale(1.1)",
+            opacity: "0.4",
+          },
+          "50%": {
+            transform: "translate(-5%, 15%) scale(0.9)",
+            opacity: "0.35",
+          },
+          "75%": {
+            transform: "translate(-10%, -5%) scale(1.05)",
+            opacity: "0.4",
+          },
+        },
+        "map-fade-in": {
+          "0%": {
+            opacity: "0",
+            transform: "scale(0.95)",
+          },
+          "100%": {
+            opacity: "1",
+            transform: "scale(1)",
+          },
+        },
+      },
+      animation: {
+        "aurora-move": "aurora-move 20s ease-in-out infinite",
+        "map-fade-in": "map-fade-in 3s ease-out forwards",
+      },
     },
   },
   plugins: [],
