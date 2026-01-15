@@ -1,4 +1,4 @@
-import { auth, update } from "@/lib/auth";
+import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { NextResponse } from "next/server";
 
@@ -7,6 +7,9 @@ import { NextResponse } from "next/server";
  * 
  * POST /api/organization/switch
  * Body: { organizationId: string }
+ * 
+ * 注意: セッションの更新はクライアントサイドでuseSession().update()を呼び出す必要があります。
+ * このAPIは組織のメンバーシップを検証し、切り替え可能な組織情報を返します。
  */
 export async function POST(request: Request) {
   try {
@@ -34,6 +37,7 @@ export async function POST(request: Request) {
       where: {
         userId: session.user.id,
         organizationId,
+        tenantId: session.user.tenantId,
         OR: [
           { expiresAt: null },
           { expiresAt: { gt: new Date() } },
@@ -55,11 +59,7 @@ export async function POST(request: Request) {
       );
     }
 
-    // セッションを更新（activeOrganizationIdを変更）
-    await update({
-      activeOrganizationId: organizationId,
-    });
-
+    // セッション更新はクライアントサイドで行うため、ここでは検証結果のみを返す
     return NextResponse.json({
       success: true,
       organizationId,

@@ -117,7 +117,7 @@ export async function getLeads(
             OR (data->>'住所')::text ILIKE $3
           )`,
         tenantId,
-        userOrg.organizationId,
+        currentOrgId,
         searchPattern
       ) as Array<{ count: bigint }>;
 

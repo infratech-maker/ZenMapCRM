@@ -75,6 +75,18 @@ export function OrganizationSwitcher() {
 
     setIsSwitching(true);
     try {
+      // APIを呼び出して組織のメンバーシップを検証
+      const response = await fetch("/api/organization/switch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ organizationId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to switch organization");
+      }
+
       // セッションを更新（activeOrganizationIdを変更）
       await update({
         activeOrganizationId: organizationId,
@@ -84,7 +96,7 @@ export function OrganizationSwitcher() {
       router.refresh();
     } catch (error) {
       console.error("Error switching organization:", error);
-      alert("組織の切り替えに失敗しました");
+      alert(error instanceof Error ? error.message : "組織の切り替えに失敗しました");
     } finally {
       setIsSwitching(false);
     }

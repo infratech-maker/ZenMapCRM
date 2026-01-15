@@ -129,7 +129,7 @@ export async function getMasterLeads(
             where: {
               masterLeadId: ml.id,
               tenantId,
-              organizationId: userOrg.organizationId,
+              organizationId: currentOrgId,
             },
           });
 
@@ -232,29 +232,12 @@ export async function getMasterLeadsAsLeads(
 
     const { tenantId } = session.user;
 
-    // ユーザーの主所属組織を取得
-    let userOrg;
+    // 現在アクティブな組織IDを取得
+    let currentOrgId: string;
     try {
-      userOrg = await prisma.userOrganization.findFirst({
-        where: {
-          userId: session.user.id,
-          isPrimary: true,
-        },
-        select: {
-          organizationId: true,
-        },
-      });
-    } catch (dbError: any) {
-      console.error("Database connection error in getMasterLeadsAsLeads:", dbError);
-      // データベース接続エラーの場合、より詳細なエラーメッセージを返す
-      if (dbError.message?.includes("Can't reach database server") || 
-          dbError.message?.includes("connect ECONNREFUSED")) {
-        throw new Error("データベースサーバーに接続できません。PostgreSQLが起動しているか確認してください。");
-      }
-      throw dbError;
-    }
-
-    if (!userOrg) {
+      currentOrgId = await getCurrentOrgId();
+    } catch (error) {
+      // 組織が設定されていない場合は空の結果を返す
       return {
         leads: [],
         total: 0,
@@ -293,7 +276,7 @@ export async function getMasterLeadsAsLeads(
       leads: {
         where: {
           tenantId,
-          organizationId: userOrg.organizationId,
+          organizationId: currentOrgId,
           ...(statuses && statuses.length > 0
             ? { status: { in: statuses } }
             : {}),
@@ -308,7 +291,7 @@ export async function getMasterLeadsAsLeads(
           leads: {
             where: {
               tenantId,
-              organizationId: userOrg.organizationId,
+              organizationId: currentOrgId,
               ...(statuses && statuses.length > 0
                 ? { status: { in: statuses } }
                 : {}),
@@ -397,28 +380,12 @@ export async function getAllMasterLeadsAsLeadsForExport(
 
     const { tenantId } = session.user;
 
-    // ユーザーの主所属組織を取得
-    let userOrg;
+    // 現在アクティブな組織IDを取得
+    let currentOrgId: string;
     try {
-      userOrg = await prisma.userOrganization.findFirst({
-        where: {
-          userId: session.user.id,
-          isPrimary: true,
-        },
-        select: {
-          organizationId: true,
-        },
-      });
-    } catch (dbError: any) {
-      console.error("Database connection error in getAllMasterLeadsAsLeadsForExport:", dbError);
-      if (dbError.message?.includes("Can't reach database server") || 
-          dbError.message?.includes("connect ECONNREFUSED")) {
-        throw new Error("データベースサーバーに接続できません。PostgreSQLが起動しているか確認してください。");
-      }
-      throw dbError;
-    }
-
-    if (!userOrg) {
+      currentOrgId = await getCurrentOrgId();
+    } catch (error) {
+      // 組織が設定されていない場合は空の結果を返す
       return [];
     }
 
@@ -460,7 +427,7 @@ export async function getAllMasterLeadsAsLeadsForExport(
         leads: {
           where: {
             tenantId,
-            organizationId: userOrg.organizationId,
+            organizationId: currentOrgId,
             ...(statuses && statuses.length > 0
               ? { status: { in: statuses } }
               : {}),
