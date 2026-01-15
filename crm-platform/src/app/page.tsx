@@ -35,15 +35,27 @@ export default function HomePage() {
           }}
         />
         
-        {/* Optional background image overlay (if exists) */}
-        <div className="absolute inset-0 opacity-10">
-          {/* Background image would go here if available */}
-          <div 
-            className="w-full h-full"
-            style={{
-              background: 'radial-gradient(circle at center, rgba(88, 28, 135, 0.2) 0%, transparent 70%)',
-            }}
-          />
+        {/* Background image overlay (if exists) */}
+        <div className="absolute inset-0 opacity-20">
+          {/* 画像が存在する場合は表示、存在しない場合はグラデーション */}
+          <div className="relative w-full h-full">
+            {/* 背景画像: 画像が存在する場合は表示 */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+              style={{
+                backgroundImage: 'url(/images/japan-network-map.png)',
+                backgroundSize: 'cover',
+                backgroundPosition: 'center',
+              }}
+            />
+            {/* フォールバック: 画像が存在しない場合のグラデーション */}
+            <div 
+              className="absolute inset-0"
+              style={{
+                background: 'radial-gradient(circle at center, rgba(88, 28, 135, 0.2) 0%, transparent 70%)',
+              }}
+            />
+          </div>
         </div>
 
         {/* Main Content */}
