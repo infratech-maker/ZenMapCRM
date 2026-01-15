@@ -15,6 +15,7 @@ import {
   LogOut,
   UserCog,
   CreditCard,     // Pricing
+  Shield,          // Admin section icon
 } from "lucide-react"
 
 interface SidebarProps {
@@ -52,6 +53,12 @@ const menuGroups = [
       { href: "/dashboard/settings/users", label: "Users", icon: UserCog, roles: ["Super Admin", "Org Admin"] },
       { href: "/dashboard/settings/organizations", label: "Organization", icon: Building2, roles: ["Super Admin", "Org Admin"] },
       { href: "/dashboard/settings", label: "Settings", icon: Settings, roles: ["Super Admin"] },
+    ],
+  },
+  {
+    label: "ADMIN", // システム管理者専用
+    items: [
+      { href: "/dashboard/admin/organizations", label: "Organizations", icon: Building2, roles: ["Super Admin"] },
     ],
   },
 ]
