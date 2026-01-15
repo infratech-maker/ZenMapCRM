@@ -10,7 +10,7 @@
  */
 export function AnimatedBackground() {
   return (
-    <div className="fixed inset-0 overflow-hidden bg-[#0B1120]">
+    <div className="fixed inset-0 overflow-hidden bg-[#0B1120] z-0">
       {/* ベース背景 */}
       <div className="absolute inset-0 bg-[#0B1120]" />
 
@@ -49,12 +49,11 @@ export function AnimatedBackground() {
 
       {/* 浮かび上がる日本地図 */}
       <div
-        className="absolute inset-0 opacity-0 animate-map-fade-in"
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: "url(/images/japan-network-map.png)",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
+          opacity: 0,
+          animation: "map-fade-in 3s ease-out forwards",
         }}
       />
 

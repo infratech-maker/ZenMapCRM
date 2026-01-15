@@ -54,19 +54,15 @@ const config: Config = {
         "aurora-move": {
           "0%, 100%": {
             transform: "translate(0, 0) scale(1)",
-            opacity: "0.3",
           },
           "25%": {
             transform: "translate(10%, 10%) scale(1.1)",
-            opacity: "0.4",
           },
           "50%": {
             transform: "translate(-5%, 15%) scale(0.9)",
-            opacity: "0.35",
           },
           "75%": {
             transform: "translate(-10%, -5%) scale(1.05)",
-            opacity: "0.4",
           },
         },
         "map-fade-in": {
