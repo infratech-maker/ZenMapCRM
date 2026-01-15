@@ -159,9 +159,9 @@ export function InviteUserDialog({
                 </div>
               ) : (
                 <Select
-                  value={organizationId || ""}
+                  value={organizationId || "none"}
                   onValueChange={(value) =>
-                    setOrganizationId(value || null)
+                    setOrganizationId(value === "none" ? null : value)
                   }
                   disabled={isLoading}
                 >
@@ -169,7 +169,7 @@ export function InviteUserDialog({
                     <SelectValue placeholder="組織を選択（任意）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">未設定</SelectItem>
+                    <SelectItem value="none">未設定</SelectItem>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name} {org.code && `(${org.code})`}
