@@ -163,8 +163,10 @@ model User {
   // Relations
   tenant            Tenant             @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   userOrganizations UserOrganization[]
+  organizationMembers OrganizationMember[] // 新規: 組織メンバーシップ
   userRoles         UserRole[]
   userRolesAssigned UserRole[]         @relation("UserRoleAssignedBy")
+  organizationMembersAssigned OrganizationMember[] @relation("OrganizationMemberAssignedBy") // 新規
   invitationsSent   Invitation[]       @relation("InvitedBy")
 
   // Audit fields (created/updated by)
@@ -205,6 +207,7 @@ model Organization {
   parent            Organization?         @relation("OrganizationHierarchy", fields: [parentId], references: [id], onDelete: Cascade)
   children          Organization[]        @relation("OrganizationHierarchy")
   userOrganizations UserOrganization[]
+  members           OrganizationMember[]  // 新規: 組織メンバーシップ
   customers         Customer[]
   deals             Deal[]
   leads             Lead[]
@@ -258,6 +261,7 @@ model Role {
   // Relations
   tenant          Tenant           @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   userRoles       UserRole[]
+  organizationMembers OrganizationMember[] // 新規: 組織メンバーシップ
   rolePermissions RolePermission[]
   invitations     Invitation[]
 
@@ -354,6 +358,41 @@ model Invitation {
   @@index([status])
   @@index([expiresAt])
   @@map("invitations")
+}
+
+// ============================================
+// Organization Membership (新規: 組織ごとのロール管理)
+// ============================================
+
+model OrganizationMember {
+  id             String   @id @default(uuid())
+  userId         String   @map("user_id")
+  organizationId String   @map("organization_id")
+  roleId         String   @map("role_id")
+  tenantId       String   @map("tenant_id")
+  isPrimary      Boolean  @default(false) @map("is_primary") // 主所属かどうか
+  assignedBy     String?  @map("assigned_by") // 割り当てたユーザーID
+  expiresAt      DateTime? @map("expires_at") // 有効期限（null = 無期限）
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  role         Role         @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  tenant       Tenant       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  assignedByUser User?     @relation("OrganizationMemberAssignedBy", fields: [assignedBy], references: [id], onDelete: SetNull)
+
+  // 1人のユーザーが同じ組織に重複して所属しない制約
+  @@unique([userId, organizationId])
+  // インデックス
+  @@index([userId])
+  @@index([organizationId])
+  @@index([roleId])
+  @@index([tenantId])
+  @@index([userId, isPrimary])
+  @@index([userId, expiresAt])
+  @@map("organization_members")
 }
 
 // ============================================

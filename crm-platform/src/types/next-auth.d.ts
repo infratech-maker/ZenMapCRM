@@ -11,6 +11,12 @@ declare module "next-auth" {
       organizationId: string | null;
       role: string;
       permissions: string[];
+      organizationMemberships: Array<{
+        id: string;
+        name: string;
+        roleId: string;
+        roleName: string;
+      }>;
     };
   }
 
@@ -22,6 +28,12 @@ declare module "next-auth" {
     organizationId: string | null;
     role: string;
     permissions: string[];
+    organizationMemberships: Array<{
+      id: string;
+      name: string;
+      roleId: string;
+      roleName: string;
+    }>;
   }
 }
 
@@ -32,6 +44,12 @@ declare module "next-auth/jwt" {
     organizationId: string | null;
     role: string;
     permissions: string[];
+    organizationMemberships: Array<{
+      id: string;
+      name: string;
+      roleId: string;
+      roleName: string;
+    }>;
   }
 }
 
