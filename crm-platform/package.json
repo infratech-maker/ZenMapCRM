@@ -13,6 +13,7 @@
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed:tenant": "tsx scripts/seed-tenant.ts",
+    "db:seed:projects": "tsx scripts/seed-develop-projects.ts",
     "db:import:leads": "tsx scripts/import-leads.ts",
     "db:import:customers": "tsx scripts/import-customers.ts",
     "db:import:tabelog": "tsx scripts/import-tabelog-data.ts",
