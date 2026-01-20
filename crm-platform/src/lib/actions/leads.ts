@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/auth/get-current-org";
 import { revalidatePath } from "next/cache";
 import { Prisma } from "@prisma/client";
 
@@ -28,34 +29,15 @@ export async function getLeads(
 
   const { tenantId } = session.user;
 
-  // ユーザーの主所属組織を取得
-  const userOrg = await prisma.userOrganization.findFirst({
-    where: {
-      userId: session.user.id,
-      isPrimary: true,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
-
-  if (!userOrg) {
-    // 組織が設定されていない場合は空の結果を返す
-    return {
-      leads: [],
-      total: 0,
-      page,
-      pageSize,
-      totalPages: 0,
-    };
-  }
+  // 現在アクティブな組織IDを取得
+  const currentOrgId = await getCurrentOrgId();
 
   const skip = (page - 1) * pageSize;
 
   // where条件を動的に構築
   const whereCondition: any = {
     tenantId,
-    organizationId: userOrg.organizationId,
+    organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
   };
 
   // ステータスフィルター (IN条件)
@@ -112,7 +94,7 @@ export async function getLeads(
         ORDER BY "createdAt" DESC
         LIMIT $4 OFFSET $5`,
         tenantId,
-        userOrg.organizationId,
+        currentOrgId,
         searchPattern,
         pageSize,
         skip
@@ -135,7 +117,7 @@ export async function getLeads(
             OR (data->>'住所')::text ILIKE $3
           )`,
         tenantId,
-        userOrg.organizationId,
+        currentOrgId,
         searchPattern
       ) as Array<{ count: bigint }>;
 
@@ -200,20 +182,8 @@ export async function importLeads(csvData: string) {
 
   const { tenantId } = session.user;
 
-  // ユーザーの主所属組織を取得
-  const userOrg = await prisma.userOrganization.findFirst({
-    where: {
-      userId: session.user.id,
-      isPrimary: true,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
-
-  if (!userOrg) {
-    throw new Error("Organization not found");
-  }
+  // 現在アクティブな組織IDを取得
+  const currentOrgId = await getCurrentOrgId();
 
   // CSVをパース
   const Papa = (await import("papaparse")).default;
@@ -237,7 +207,7 @@ export async function importLeads(csvData: string) {
   const existingLeads = await prisma.lead.findMany({
     where: {
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId,
     },
     select: {
       id: true,
@@ -320,7 +290,7 @@ export async function importLeads(csvData: string) {
 
     leadsToCreate.push({
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId,
       source: url,
       data,
       status: "new",

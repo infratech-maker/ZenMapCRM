@@ -20,7 +20,7 @@ export default async function DashboardLayout({
     <div className="flex min-h-screen bg-gray-50">
       {/* Sidebar - Fixed */}
       <aside className="fixed left-0 top-0 z-40 h-screen">
-        <Sidebar userRole={session.user.role} />
+        <Sidebar userRole={session.user.activeOrganizationRole} />
       </aside>
 
       {/* Main Content */}
@@ -29,7 +29,7 @@ export default async function DashboardLayout({
         <Header
           userName={session.user.name}
           userEmail={session.user.email}
-          userRole={session.user.role}
+          userRole={session.user.activeOrganizationRole}
         />
 
         {/* Page Content */}

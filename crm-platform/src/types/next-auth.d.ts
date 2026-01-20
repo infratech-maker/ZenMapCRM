@@ -8,9 +8,9 @@ declare module "next-auth" {
       email: string;
       name: string;
       tenantId: string;
-      organizationId: string | null;
-      role: string;
-      permissions: string[];
+      activeOrganizationId: string | null; // 現在アクティブな組織ID
+      activeOrganizationRole: string; // 現在アクティブな組織でのロール
+      permissions: string[]; // 現在アクティブな組織での権限
     };
   }
 
@@ -19,8 +19,8 @@ declare module "next-auth" {
     email: string;
     name: string;
     tenantId: string;
-    organizationId: string | null;
-    role: string;
+    activeOrganizationId: string | null;
+    activeOrganizationRole: string;
     permissions: string[];
   }
 }
@@ -29,9 +29,9 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     tenantId: string;
-    organizationId: string | null;
-    role: string;
-    permissions: string[];
+    activeOrganizationId: string | null; // 現在アクティブな組織ID
+    activeOrganizationRole: string; // 現在アクティブな組織でのロール
+    permissions: string[]; // 現在アクティブな組織での権限
   }
 }
 

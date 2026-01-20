@@ -13,6 +13,7 @@ import {
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth"
 import { redirect } from "next/navigation"
+import { getCurrentOrgId } from "@/lib/auth/get-current-org"
 
 export default async function ProjectsPage() {
   const session = await auth();
@@ -23,14 +24,49 @@ export default async function ProjectsPage() {
 
   const tenantId = session.user.tenantId;
 
+  // 現在アクティブな組織IDを取得
+  let currentOrgId: string;
+  try {
+    currentOrgId = await getCurrentOrgId();
+  } catch (error) {
+    // 組織が設定されていない場合は空の結果を返す
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Campaigns</h1>
+            <p className="text-gray-600 mt-1">
+              保存された営業リストを管理します
+            </p>
+          </div>
+        </div>
+        <div className="text-center py-10 text-muted-foreground border-2 border-dashed rounded-lg">
+          組織が設定されていません。組織を選択してください。
+        </div>
+      </div>
+    );
+  }
+
   // プロジェクトと、それに紐づくリード数を取得
+  // 現在の組織に属するリードを持つプロジェクトのみを取得
   const projects = await prisma.project.findMany({
     where: {
       tenantId: tenantId,
+      leads: {
+        some: {
+          organizationId: currentOrgId,
+        },
+      },
     },
     include: {
       _count: {
-        select: { leads: true },
+        select: { 
+          leads: {
+            where: {
+              organizationId: currentOrgId,
+            },
+          },
+        },
       },
     },
     orderBy: { createdAt: 'desc' },

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { getCurrentOrgId } from "@/lib/auth/get-current-org";
 import { revalidatePath } from "next/cache";
 import { ActivityType } from "@/types/activity";
 
@@ -20,27 +21,15 @@ export async function getActivityLogs(leadId: string) {
 
   const { tenantId } = session.user;
 
-  // ユーザーの主所属組織を取得
-  const userOrg = await prisma.userOrganization.findFirst({
-    where: {
-      userId: session.user.id,
-      isPrimary: true,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
-
-  if (!userOrg) {
-    return [];
-  }
+  // 現在アクティブな組織IDを取得
+  const currentOrgId = await getCurrentOrgId();
 
   // リードが存在し、同じテナント・組織に属しているか確認
   const lead = await prisma.lead.findFirst({
     where: {
       id: leadId,
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
     },
   });
 
@@ -95,27 +84,15 @@ export async function createActivityLog(
 
   const { tenantId } = session.user;
 
-  // ユーザーの主所属組織を取得
-  const userOrg = await prisma.userOrganization.findFirst({
-    where: {
-      userId: session.user.id,
-      isPrimary: true,
-    },
-    select: {
-      organizationId: true,
-    },
-  });
-
-  if (!userOrg) {
-    throw new Error("Organization not found");
-  }
+  // 現在アクティブな組織IDを取得
+  const currentOrgId = await getCurrentOrgId();
 
   // リードが存在し、同じテナント・組織に属しているか確認
   const lead = await prisma.lead.findFirst({
     where: {
       id: leadId,
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
     },
   });
 
@@ -131,7 +108,7 @@ export async function createActivityLog(
       status,
       note: note || null,
       tenantId,
-      organizationId: userOrg.organizationId,
+      organizationId: currentOrgId, // ★必須: 現在の組織のデータのみ取得
       userId: session.user.id,
     },
     include: {

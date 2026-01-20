@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { randomBytes } from "crypto";
+import bcrypt from "bcryptjs";
 
 /**
  * ユーザー一覧を取得
@@ -21,9 +22,9 @@ export async function getUsers() {
     redirect("/login");
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.activeOrganizationRole;
   const tenantId = session.user.tenantId;
-  const organizationId = session.user.organizationId;
+  const organizationId = session.user.activeOrganizationId;
 
   // Userロールはアクセス権限なし
   if (userRole === "User") {
@@ -247,8 +248,8 @@ export async function getOrganizations() {
   }
 
   const tenantId = session.user.tenantId;
-  const userRole = session.user.role;
-  const organizationId = session.user.organizationId;
+  const userRole = session.user.activeOrganizationRole;
+  const organizationId = session.user.activeOrganizationId;
 
   if (userRole === "User") {
     throw new Error("Access denied: Insufficient permissions");
@@ -345,11 +346,115 @@ export async function getRoles() {
 }
 
 /**
- * ユーザーを招待
+ * ユーザーを新規作成
  * 
  * @param email メールアドレス
+ * @param name ユーザー名
+ * @param password パスワード（平文）
  * @param roleId ロールID
  * @param organizationId 組織ID（オプション）
+ */
+export async function createUser(
+  email: string,
+  name: string,
+  password: string,
+  roleId: string,
+  organizationId?: string | null
+) {
+  const session = await auth();
+
+  if (!session?.user) {
+    redirect("/login");
+  }
+
+  const userRole = session.user.activeOrganizationRole;
+  const tenantId = session.user.tenantId;
+
+  // 権限チェック
+  if (userRole === "User") {
+    throw new Error("Access denied: Insufficient permissions");
+  }
+
+  // バリデーション
+  if (!email || !email.includes("@")) {
+    throw new Error("Invalid email address");
+  }
+
+  if (!name || name.trim().length === 0) {
+    throw new Error("Name is required");
+  }
+
+  if (!password || password.length < 6) {
+    throw new Error("Password must be at least 6 characters");
+  }
+
+  // 既存のユーザーが存在するかチェック
+  const existingUser = await prisma.user.findFirst({
+    where: {
+      tenantId,
+      email,
+    },
+  });
+
+  if (existingUser) {
+    throw new Error("User with this email already exists");
+  }
+
+  // パスワードをハッシュ化
+  const passwordHash = await bcrypt.hash(password, 10);
+
+  // トランザクションでユーザー、組織関連、ロール関連を作成
+  const result = await prisma.$transaction(async (tx) => {
+    // ユーザーを作成
+    const user = await tx.user.create({
+      data: {
+        tenantId,
+        email,
+        name: name.trim(),
+        passwordHash,
+        isActive: true,
+      },
+    });
+
+    // 組織が指定されている場合、UserOrganizationを作成
+    if (organizationId) {
+      await tx.userOrganization.create({
+        data: {
+          userId: user.id,
+          organizationId,
+          tenantId,
+          isPrimary: true,
+        },
+      });
+    }
+
+    // ロールを割り当て
+    await tx.userRole.create({
+      data: {
+        userId: user.id,
+        roleId,
+        tenantId,
+        assignedBy: session.user.id,
+      },
+    });
+
+    return user;
+  });
+
+  // UIを更新
+  revalidatePath("/dashboard/settings/users");
+
+  return {
+    id: result.id,
+    email: result.email,
+    name: result.name,
+  };
+}
+
+/**
+ * ユーザーを招待（後方互換性のため残す）
+ * 
+ * @deprecated この関数は非推奨です。代わりに createUser を使用してください。
  */
 export async function inviteUser(
   email: string,
@@ -362,7 +467,7 @@ export async function inviteUser(
     redirect("/login");
   }
 
-  const userRole = session.user.role;
+  const userRole = session.user.activeOrganizationRole;
   const tenantId = session.user.tenantId;
 
   // 権限チェック

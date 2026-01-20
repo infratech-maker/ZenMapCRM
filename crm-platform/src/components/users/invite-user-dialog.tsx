@@ -19,7 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { inviteUser, getOrganizations, getRoles } from "@/lib/actions/users";
+import { createUser, getOrganizations, getRoles } from "@/lib/actions/users";
 
 interface InviteUserDialogProps {
   open: boolean;
@@ -46,6 +46,8 @@ export function InviteUserDialog({
   onSuccess,
 }: InviteUserDialogProps) {
   const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [password, setPassword] = useState("");
   const [roleId, setRoleId] = useState("");
   const [organizationId, setOrganizationId] = useState<string | null>(null);
   const [organizations, setOrganizations] = useState<Organization[]>([]);
@@ -78,9 +80,11 @@ export function InviteUserDialog({
     setIsLoading(true);
 
     try {
-      await inviteUser(email, roleId, organizationId);
+      await createUser(email, name, password, roleId, organizationId);
       // 成功時の処理
       setEmail("");
+      setName("");
+      setPassword("");
       setRoleId("");
       setOrganizationId(null);
       onOpenChange(false);
@@ -88,7 +92,7 @@ export function InviteUserDialog({
         onSuccess();
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "招待に失敗しました");
+      setError(err instanceof Error ? err.message : "ユーザーの作成に失敗しました");
     } finally {
       setIsLoading(false);
     }
@@ -96,6 +100,8 @@ export function InviteUserDialog({
 
   const handleClose = () => {
     setEmail("");
+    setName("");
+    setPassword("");
     setRoleId("");
     setOrganizationId(null);
     setError(null);
@@ -106,9 +112,9 @@ export function InviteUserDialog({
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>ユーザーを招待</DialogTitle>
+          <DialogTitle>ユーザー新規登録</DialogTitle>
           <DialogDescription>
-            新しいユーザーに招待メールを送信します。招待リンクはコンソールに出力されます。
+            新しいユーザーを直接作成します。作成後、すぐにログイン可能です。
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -122,6 +128,31 @@ export function InviteUserDialog({
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="name">ユーザー名</Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="山田 太郎"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                disabled={isLoading}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="password">パスワード</Label>
+              <Input
+                id="password"
+                type="password"
+                placeholder="パスワードを入力（6文字以上）"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                minLength={6}
                 disabled={isLoading}
               />
             </div>
@@ -159,9 +190,9 @@ export function InviteUserDialog({
                 </div>
               ) : (
                 <Select
-                  value={organizationId || ""}
+                  value={organizationId || "none"}
                   onValueChange={(value) =>
-                    setOrganizationId(value || null)
+                    setOrganizationId(value === "none" ? null : value)
                   }
                   disabled={isLoading}
                 >
@@ -169,7 +200,7 @@ export function InviteUserDialog({
                     <SelectValue placeholder="組織を選択（任意）" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">未設定</SelectItem>
+                    <SelectItem value="none">未設定</SelectItem>
                     {organizations.map((org) => (
                       <SelectItem key={org.id} value={org.id}>
                         {org.name} {org.code && `(${org.code})`}
@@ -195,7 +226,7 @@ export function InviteUserDialog({
               キャンセル
             </Button>
             <Button type="submit" disabled={isLoading || isLoadingData}>
-              {isLoading ? "送信中..." : "招待を送信"}
+              {isLoading ? "登録中..." : "登録する"}
             </Button>
           </DialogFooter>
         </form>

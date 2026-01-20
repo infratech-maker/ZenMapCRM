@@ -2,9 +2,14 @@
 
 import { ApifyClient } from 'apify-client';
 
-const apifyClient = new ApifyClient({
-  token: process.env.APIFY_API_TOKEN,
-});
+// ApifyClientを遅延初期化（トークンが設定されている場合のみ）
+function getApifyClient() {
+  const token = process.env.APIFY_API_TOKEN;
+  if (!token) {
+    throw new Error('APIFY_API_TOKEN is not configured');
+  }
+  return new ApifyClient({ token });
+}
 
 export interface StartGoogleMapsScrapingParams {
   keywords: string[];
@@ -71,6 +76,8 @@ export async function startGoogleMapsScraping(
   };
 
   try {
+    const apifyClient = getApifyClient();
+    
     console.log(`🚀 Starting Apify job with params:`, {
       keywords,
       location,
@@ -118,6 +125,7 @@ export async function getApifyJobStatus(runId: string) {
   }
 
   try {
+    const apifyClient = getApifyClient();
     const run = await apifyClient.run(runId).get();
     if (!run) {
       return {

@@ -1,27 +1,68 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { AnimatedBackground } from "@/components/ui/animated-background";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="max-w-2xl mx-auto text-center px-4">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          統合CRMプラットフォーム
-        </h1>
-        <p className="text-lg text-gray-600 mb-8">
-          高度なBI機能を持つ統合CRMプラットフォームへようこそ
-        </p>
-        
-        <div className="space-y-4">
+    <div className="min-h-screen text-white flex flex-col relative">
+      {/* アニメーション背景 */}
+      <AnimatedBackground />
+
+      {/* Header */}
+      <header className="relative z-10 w-full px-6 py-4 sm:px-8 sm:py-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="relative flex h-8 w-8 items-center justify-center">
+            <div className="absolute inset-0 rounded-full bg-purple-600 blur opacity-40 animate-pulse" />
+            <div className="relative h-6 w-6 rounded-full bg-gradient-to-tr from-purple-500 to-indigo-500 shadow-inner" />
+          </div>
+          <span className="font-bold text-xl sm:text-2xl tracking-widest text-white">
+            Zen-Map
+          </span>
+        </div>
+        <Link href="/login">
+          <Button
+            variant="outline"
+            className="border-white/20 text-white hover:bg-white/10 hover:border-white/30"
+          >
+            Sign In
+          </Button>
+        </Link>
+      </header>
+
+      {/* Hero Section */}
+      <main className="relative z-10 flex-1 flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        {/* Main Content */}
+        <div className="max-w-4xl mx-auto text-center">
+          {/* Catch Copy */}
+          <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-wide mb-6 leading-tight">
+            47都道府県を、
+            <br />
+            あなたの市場に変える
+          </h1>
+
+          {/* Sub Copy */}
+          <p className="text-base sm:text-lg md:text-xl text-slate-400 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Zen-Mapは、全国展開を目指す御社の市場拡大を加速させる、
+            <br className="hidden sm:block" />
+            デリバリーデータ起点の営業リスト自動生成ツールです。
+          </p>
+
+          {/* CTA Button */}
           <Link href="/dashboard">
-            <Button size="lg" className="w-full sm:w-auto">
+            <Button
+              size="lg"
+              className="h-12 px-8 text-base sm:text-lg bg-white text-slate-950 hover:bg-slate-100 hover:shadow-[0_0_30px_rgba(255,255,255,0.3)] transition-all duration-300 font-semibold"
+            >
               ダッシュボードを開く
             </Button>
           </Link>
         </div>
-      </div>
+      </main>
+
+      {/* Footer */}
+      <footer className="relative z-10 w-full px-6 py-4 sm:px-8 text-center text-sm text-slate-500 border-t border-slate-900/50">
+        <p>© 2026 Zen-Map. All rights reserved.</p>
+      </footer>
     </div>
   );
 }
-
-

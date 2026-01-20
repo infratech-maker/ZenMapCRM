@@ -40,3 +40,8 @@ next-env.d.ts
 
 # logs
 /logs/
+
+# temporary files
+*.py
+*.csv
+!scripts/**/*.py
