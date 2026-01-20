@@ -22,8 +22,8 @@ ENV NEXT_TELEMETRY_DISABLED=1
 # ビルドを実行
 RUN npm run build
 
-# ポート3000を公開
-EXPOSE 3000
+# ポートを公開（Railwayが自動的にPORT環境変数を設定）
+EXPOSE ${PORT:-3000}
 
 # デフォルトコマンド（Webサーバー起動）
 CMD ["npm", "start"]
