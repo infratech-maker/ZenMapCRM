@@ -14,6 +14,77 @@
 
 ---
 
+## [0.4.0] - 2025-01-20
+
+### 追加
+
+#### UberEats収集機能
+- **UberEats収集機能**: UberEatsから店舗リストを自動収集
+  - `startUbereatsScraping` Server Action: UberEatsエリアURLから店舗情報を収集
+  - `UbereatsScraperDialog` コンポーネント: 収集UI（エリア選択、収集上限数設定）
+  - 主要都市のプリセットエリア（東京、大阪、横浜、名古屋、福岡、札幌、仙台、京都）
+  - Apify統合による自動収集とMasterLeadへの自動登録
+
+#### 組織管理機能（SUPER_ADMIN専用）
+- **組織管理ページ**: システム全体の組織を管理
+  - `/dashboard/admin/organizations` ページ: 組織一覧表示
+  - `createOrganization` Server Action: 組織の新規作成
+  - `CreateOrganizationDialog` コンポーネント: 組織作成UI
+  - サイドバーに「ADMIN」セクションを追加（Super Adminのみ表示）
+
+#### UI/UX改善
+- **アニメーション背景コンポーネント**: リッチなアニメーション効果
+  - `AnimatedBackground` コンポーネント: オーロラ風のアニメーション
+  - 日本地図のフェードインアニメーション
+  - Tailwind CSS keyframes定義（`aurora-move`, `map-fade-in`）
+- **ログインページのデザイン統一**: トップページと統一されたデザイン
+  - ダークネイビーテーマの統一
+  - アニメーション背景の共有
+  - 半透明のログインフォーム（`bg-slate-900/60`）
+
+#### マルチテナント対応の強化
+- **組織スイッチャー**: 複数組織に所属するユーザー向け
+  - `OrganizationSwitcher` コンポーネント: 組織の切り替えUI
+  - `/api/organizations/mine` エンドポイント: ユーザーの組織一覧取得
+  - `/api/organization/switch` エンドポイント: アクティブ組織の切り替え
+  - Slim Session Pattern: セッションに`activeOrganizationId`と`activeOrganizationRole`を保存
+- **データフィルタリングの改善**: 組織単位でのデータアクセス
+  - プロジェクト一覧を`organizationId`でフィルタリング
+  - リード、マスターリード、顧客データを組織単位で管理
+  - `getCurrentOrgId()` ヘルパー関数: アクティブ組織IDの取得
+
+#### ドキュメント追加
+- Railway環境変数セットアップガイド（`APIFY_API_TOKEN`, `APIFY_WEBHOOK_SECRET`, `NEXT_PUBLIC_APP_URL`）
+- Staging環境Master Leadsマイグレーション手順
+- Apify APIトークンセットアップガイド
+- Railway `PUBLIC_DATABASE_URL` セットアップガイド
+- API移行ガイド
+
+### 変更
+
+#### 認証・セッション管理
+- NextAuth.jsセッション構造の変更: `organizationMemberships`を削除し、`activeOrganizationId`と`activeOrganizationRole`に簡素化
+- ログアウト時のリダイレクト先を相対パス（`/login`）に変更
+
+#### データベーススキーマ
+- `OrganizationMember` テーブル: ユーザーと組織の多対多関係を管理
+- `MasterLead` モデル: `organizationId`フィールドを追加（テナント共通マスタの場合はnull）
+
+### 修正
+
+#### バグ修正
+- Google Maps収集のエラーハンドリング改善: ApifyClientの遅延初期化、環境変数チェックの追加
+- ログアウト時のリダイレクト先エラー修正: 絶対URLではなく相対パスを使用
+- アニメーションが動作しない問題の修正: インラインスタイルでのアニメーション適用
+- `ScrapingJobStatus` enum値の修正: `'pending'` → `ScrapingJobStatus.PENDING`
+- プロジェクト一覧のフィルタリング修正: `userId`から`organizationId`に変更
+
+#### データアクセス修正
+- プロジェクト一覧・詳細ページ: `organizationId`でフィルタリング
+- リード、マスターリード、顧客データ: 組織単位でのアクセス制御
+
+---
+
 ## [0.4.0] - 2025-01-10
 
 ### 追加
