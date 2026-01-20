@@ -2,6 +2,8 @@ import { redirect } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { Sidebar } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { HelpWidget } from "@/components/layout/help-widget";
+import { getChangelog } from "@/lib/changelog";
 
 export default async function DashboardLayout({
   children,
@@ -15,6 +17,9 @@ export default async function DashboardLayout({
   if (!session?.user) {
     redirect("/login");
   }
+
+  // サーバーサイドでCHANGELOGを読み込む
+  const releaseNotes = await getChangelog(5);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -35,6 +40,9 @@ export default async function DashboardLayout({
         {/* Page Content */}
         <main className="p-6">{children}</main>
       </div>
+
+      {/* Help Widget */}
+      <HelpWidget releaseNotes={releaseNotes} />
     </div>
   );
 }
