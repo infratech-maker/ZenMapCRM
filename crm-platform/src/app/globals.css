@@ -58,3 +58,31 @@
   }
 }
 
+@layer utilities {
+  /* カスタムアニメーション（Tailwind設定で定義できない場合のフォールバック） */
+  @keyframes aurora-move {
+    0%, 100% {
+      transform: translate(0, 0) scale(1);
+    }
+    25% {
+      transform: translate(10%, 10%) scale(1.1);
+    }
+    50% {
+      transform: translate(-5%, 15%) scale(0.9);
+    }
+    75% {
+      transform: translate(-10%, -5%) scale(1.05);
+    }
+  }
+
+  @keyframes map-fade-in {
+    0% {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    100% {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+}
