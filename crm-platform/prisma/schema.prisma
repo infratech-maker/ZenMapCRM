@@ -539,15 +539,18 @@ model Customer {
 }
 
 model Lead {
-  id            String   @id @default(uuid())
-  tenantId      String   @map("tenant_id")
-  scrapingJobId String?  @map("scraping_job_id")
-  source        String
-  data          Json
-  status        String   @default("new")
-  notes         String?
-  createdAt     DateTime @default(now()) @map("created_at")
-  updatedAt     DateTime @updatedAt @map("updated_at")
+  id             String    @id @default(uuid())
+  tenantId       String    @map("tenant_id")
+  scrapingJobId  String?   @map("scraping_job_id")
+  source         String
+  data           Json
+  status         String    @default("new")
+  notes          String?
+  enrichStatus   String?   @map("enrich_status") // "PENDING" | "COMPLETED" | "FAILED"
+  enrichedAt     DateTime? @map("enriched_at")
+  lastEnrichedAt DateTime? @map("last_enriched_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
 
   // Audit fields
   createdBy String? @map("created_by")

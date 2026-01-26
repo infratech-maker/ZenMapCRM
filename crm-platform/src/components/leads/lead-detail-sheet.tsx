@@ -21,8 +21,11 @@ import {
 import { LeadStatusBadge } from "./lead-status-badge";
 import { ActivityLogSection } from "./activity-log-section";
 import { updateLead } from "@/lib/actions/leads";
-import { ExternalLink, Phone, MapPin, Link as LinkIcon } from "lucide-react";
+import { ExternalLink, Phone, MapPin, Link as LinkIcon, Instagram, Twitter, Facebook, Globe, MapPin as MapPinIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { AIEnrichButton } from "./ai-enrich-button";
+import { motion } from "framer-motion";
+import { Badge } from "@/components/ui/badge";
 
 interface Lead {
   id: string;
@@ -30,6 +33,9 @@ interface Lead {
   data: any;
   status: string;
   notes: string | null;
+  enrichStatus?: string | null;
+  enrichedAt?: Date | null;
+  lastEnrichedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -112,6 +118,20 @@ export function LeadDetailSheet({
   const phone = data.phone || data.phone_number || data.電話番号 || "-";
   const address = data.address || data.詳細住所 || data.住所 || "-";
   const url = lead.source || "";
+  const aiSummary = data.aiSummary || data.summary || "";
+  
+  // ハイライト判定: lastEnrichedAtが1分以内の場合
+  const isRecentlyEnriched = lead.lastEnrichedAt 
+    ? new Date().getTime() - new Date(lead.lastEnrichedAt).getTime() < 60000
+    : false;
+
+  // 取得されたURL情報
+  const websiteUrl = data.websiteUrl || data.website || "";
+  const instagramUrl = data.instagramUrl || "";
+  const twitterUrl = data.twitterUrl || "";
+  const facebookUrl = data.facebookUrl || "";
+  const tabelogUrl = data.tabelogUrl || "";
+  const googleMapsUrl = data.googleMapsUrl || "";
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -124,9 +144,24 @@ export function LeadDetailSheet({
           <SheetDescription>
             作成日: {new Date(lead.createdAt).toLocaleDateString("ja-JP")}
           </SheetDescription>
+          {aiSummary && (
+            <div className="mt-2">
+              <p className="text-sm text-gray-600 italic">"{aiSummary}"</p>
+            </div>
+          )}
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
+          {/* AI強化セクション */}
+          <div className="space-y-4">
+            <AIEnrichButton 
+              leadId={lead.id}
+              onComplete={() => {
+                router.refresh();
+              }}
+            />
+          </div>
+
           {/* 基本情報 */}
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">基本情報</h3>
@@ -179,6 +214,201 @@ export function LeadDetailSheet({
                 )}
               </div>
             </div>
+
+            {/* AIで取得したURL情報 */}
+            {(websiteUrl || instagramUrl || twitterUrl || facebookUrl || tabelogUrl || googleMapsUrl) && (
+              <div className="space-y-3 pt-2">
+                <Label className="text-sm font-semibold flex items-center gap-2">
+                  <span>AIで取得した情報</span>
+                  {isRecentlyEnriched && (
+                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-500 border-green-500/20">
+                      🆕 AIが見つけました
+                    </Badge>
+                  )}
+                </Label>
+                <div className="space-y-2">
+                  {websiteUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse" 
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={websiteUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-700 underline flex items-center gap-2 text-sm"
+                      >
+                        <Globe className="h-4 w-4" />
+                        公式サイト
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                  {instagramUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 0.2
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={instagramUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-pink-600 hover:text-pink-700 underline flex items-center gap-2 text-sm"
+                      >
+                        <Instagram className="h-4 w-4" />
+                        Instagram
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                  {twitterUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 0.4
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={twitterUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-400 hover:text-blue-500 underline flex items-center gap-2 text-sm"
+                      >
+                        <Twitter className="h-4 w-4" />
+                        X (Twitter)
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                  {facebookUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 0.6
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={facebookUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:text-blue-700 underline flex items-center gap-2 text-sm"
+                      >
+                        <Facebook className="h-4 w-4" />
+                        Facebook
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                  {tabelogUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 0.8
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={tabelogUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-orange-600 hover:text-orange-700 underline flex items-center gap-2 text-sm"
+                      >
+                        <MapPinIcon className="h-4 w-4" />
+                        食べログ
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                  {googleMapsUrl && (
+                    <motion.div
+                      initial={isRecentlyEnriched ? { scale: 1.02 } : {}}
+                      animate={isRecentlyEnriched ? { 
+                        boxShadow: [
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                          "0 0 20px rgba(99, 102, 241, 0.5)",
+                          "0 0 0px rgba(99, 102, 241, 0)",
+                        ],
+                      } : {}}
+                      transition={isRecentlyEnriched ? { 
+                        duration: 2, 
+                        repeat: Infinity,
+                        repeatType: "reverse",
+                        delay: 1.0
+                      } : {}}
+                      className={`p-2 rounded-lg border ${isRecentlyEnriched ? "border-indigo-500/50 bg-indigo-500/5" : "border-gray-200"}`}
+                    >
+                      <a
+                        href={googleMapsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-green-600 hover:text-green-700 underline flex items-center gap-2 text-sm"
+                      >
+                        <MapPinIcon className="h-4 w-4" />
+                        Google Maps
+                        <ExternalLink className="h-3 w-3" />
+                      </a>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>インポート元</Label>

@@ -333,11 +333,14 @@ export async function getMasterLeadsAsLeads(
       const latestLead = ml.leads[0];
 
       return {
-        id: ml.id, // マスターリードのIDを使用
+        id: latestLead?.id || ml.id, // 実際のLeadレコードのID、なければマスターリードのID
         source: ml.source,
         data: ml.data as any,
         status: latestLead?.status || "new",
         notes: latestLead?.notes || null,
+        enrichStatus: latestLead?.enrichStatus || null,
+        enrichedAt: latestLead?.enrichedAt || null,
+        lastEnrichedAt: latestLead?.lastEnrichedAt || null,
         createdAt: ml.createdAt,
         updatedAt: ml.updatedAt,
         // マスターリード情報を追加
