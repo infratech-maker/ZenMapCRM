@@ -74,7 +74,7 @@
     "tailwind-merge": "^2.5.2",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8",
-    "zustand": "^4.5.5",
+    "zustand": "^5.0.10",
     "serpapi": "^2.0.0",
     "openai": "^4.0.0",
     "sonner": "^1.4.0"
