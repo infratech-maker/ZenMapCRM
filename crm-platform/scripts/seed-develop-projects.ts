@@ -19,9 +19,10 @@ async function main() {
 
   try {
     // 1. テナントと組織を取得
-    const tenant = await prisma.tenant.findFirst({
-      where: { slug: 'zenmao' },
-    });
+    // データベースの実際のカラム名に合わせてクエリを調整
+    const tenant = await prisma.$queryRaw<Array<{ id: string; name: string; slug: string }>>`
+      SELECT id, name, slug FROM tenants WHERE slug = 'zenmao' LIMIT 1
+    `.then(rows => rows[0] ? { id: rows[0].id, name: rows[0].name, slug: rows[0].slug } : null);
 
     if (!tenant) {
       console.error('❌ テナントが見つかりません。先にシードデータを投入してください。');
@@ -29,12 +30,35 @@ async function main() {
       process.exit(1);
     }
 
-    const organization = await prisma.organization.findFirst({
-      where: {
-        tenantId: tenant.id,
-        type: 'COMPANY',
-      },
-    });
+    // 組織を取得（生SQLで取得）
+    // データベースの実際のカラム名を確認するため、まずテーブル構造を確認
+    const orgColumns = await prisma.$queryRaw<Array<{ column_name: string }>>`
+      SELECT column_name 
+      FROM information_schema.columns 
+      WHERE table_name = 'organizations' 
+      ORDER BY ordinal_position
+    `;
+    
+    console.log('📋 Organizationsテーブルのカラム:', orgColumns.map(c => c.column_name).join(', '));
+    
+    // tenant_idカラムが存在するか確認
+    const hasTenantId = orgColumns.some(c => c.column_name === 'tenant_id');
+    
+    let organization;
+    if (hasTenantId) {
+      organization = await prisma.$queryRaw<Array<{ id: string; name: string; tenantId: string }>>`
+        SELECT id, name, tenant_id as "tenantId" FROM organizations 
+        WHERE tenant_id = ${tenant.id} AND type = 'COMPANY' 
+        LIMIT 1
+      `.then(rows => rows[0] ? { id: rows[0].id, name: rows[0].name, tenantId: rows[0].tenantId } : null);
+    } else {
+      // tenant_idがない場合は、最初の組織を取得
+      organization = await prisma.$queryRaw<Array<{ id: string; name: string }>>`
+        SELECT id, name FROM organizations 
+        WHERE type = 'COMPANY' 
+        LIMIT 1
+      `.then(rows => rows[0] ? { id: rows[0].id, name: rows[0].name, tenantId: tenant.id } : null);
+    }
 
     if (!organization) {
       console.error('❌ 組織が見つかりません。先にシードデータを投入してください。');

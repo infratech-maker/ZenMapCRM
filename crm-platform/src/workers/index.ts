@@ -86,7 +86,9 @@ function generateCuid(): string {
 }
 
 /**
- * ジョブ処理関数
+ * ジョブ処理関数（パイプライン対応版）
+ * 
+ * この関数はスクレイピングのみを実行し、結果を次のステップ（transform）に渡します
  */
 async function processJob(job: Job<any, { jobId: string; tenantId: string; url: string }, string>): Promise<any> {
   // job.idがundefinedの場合はエラー
@@ -96,10 +98,10 @@ async function processJob(job: Job<any, { jobId: string; tenantId: string; url: 
 
   const { jobId, tenantId, url } = job.data;
 
-  console.log(`📡 Processing job ${job.id} (DB Job ID: ${jobId}, URL: ${url})`);
+  console.log(`📡 [Scraping] Processing job ${job.id} (DB Job ID: ${jobId}, URL: ${url})`);
 
   try {
-    // 1. ステータスを'running'に更新（スキーマでは'running'が定義されている）
+    // 1. ステータスを'running'に更新
     await db
       .update(scrapingJobs)
       .set({
@@ -113,84 +115,16 @@ async function processJob(job: Job<any, { jobId: string; tenantId: string; url: 
     console.log(`  🔍 Scraping: ${url}`);
     const result = await scrapeUrl(url);
 
-    // 3. 既存のリードをチェック（重複防止）
-    const existingLead = await db
-      .select()
-      .from(leads)
-      .where(eq(leads.source, url))
-      .limit(1);
-
-    if (existingLead.length > 0) {
-      console.log(`  ⏭️  Skipping: Lead already exists for ${url}`);
-
-      // ジョブを完了に更新（スキップ）
-      await db
-        .update(scrapingJobs)
-        .set({
-          status: "completed",
-          completedAt: new Date(),
-          result: result as any,
-        })
-        .where(eq(scrapingJobs.id, jobId));
-
-      return { status: "skipped", result };
-    }
-
-    // 4. MasterLeadを作成または取得（Drizzle ORM使用）
-    // 既存のMasterLeadを検索（URLまたは店舗名で）
-    const whereConditions = result.name
-      ? or(eq(masterLeads.source, url), eq(masterLeads.companyName, result.name))
-      : eq(masterLeads.source, url);
+    console.log(`  ✅ [Scraping] Completed for job ${jobId}`);
     
-    const existingMasterLeads = await db
-      .select()
-      .from(masterLeads)
-      .where(whereConditions)
-      .limit(1);
-
-    let masterLeadId: string;
-
-    if (existingMasterLeads.length > 0) {
-      masterLeadId = existingMasterLeads[0].id;
-      console.log(`  ℹ️  Using existing MasterLead: ${masterLeadId}`);
-    } else {
-      // MasterLeadが存在しない場合は作成
-      masterLeadId = generateCuid();
-      await db.insert(masterLeads).values({
-        id: masterLeadId,
-        companyName: result.name || "不明",
-        phone: result.phone || null,
-        address: result.address || null,
-        source: url,
-        data: result as any,
-      });
-      console.log(`  ✅ Created MasterLead: ${masterLeadId}`);
-    }
-
-    // 5. Leadを作成
-    await db.insert(leads).values({
-      tenantId: tenantId,
-      scrapingJobId: jobId,
-      masterLeadId: masterLeadId,
-      source: url,
-      data: result as any,
-      status: "new",
-    });
-
-    // 6. ジョブを完了に更新
-    await db
-      .update(scrapingJobs)
-      .set({
-        status: "completed",
-        completedAt: new Date(),
-        result: result as any,
-      })
-      .where(eq(scrapingJobs.id, jobId));
-
-    console.log(`  ✅ Completed: ${url}`);
-    return { status: "success", result };
+    // パイプラインの次のステップに結果を渡す
+    return {
+      ...job.data,
+      scrapingResult: result,
+      status: "success",
+    };
   } catch (error) {
-    console.error(`  ❌ Error processing job ${job.id}:`, error);
+    console.error(`  ❌ [Scraping] Error processing job ${job.id}:`, error);
 
     // エラーをDBに保存
     await db
