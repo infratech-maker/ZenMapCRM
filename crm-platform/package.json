@@ -73,7 +73,7 @@
     "recharts": "^2.12.7",
     "tailwind-merge": "^2.5.2",
     "xlsx": "^0.18.5",
-    "zod": "^3.23.8",
+    "zod": "^4.3.6",
     "zustand": "^4.5.5",
     "serpapi": "^2.0.0",
     "openai": "^4.0.0",
