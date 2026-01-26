@@ -14,6 +14,72 @@
 
 ---
 
+## [2.0.1] - 2025-01-21
+
+### 追加
+
+#### AIリード強化機能 (Zen-Map Intelligence Engine)
+- **Backend実装**: SerpApi + OpenAI連携によるリード情報自動強化
+  - `enrichLeadWithIntelligence` Server Action: Google検索とAI解析による情報抽出
+  - SerpApiでGoogle検索を実行し、検索結果（上位5件 + ナレッジグラフ）を取得
+  - OpenAI (gpt-4o-mini) で構造化データを抽出（Structured Output）
+  - 公式サイト、Instagram、X(Twitter)、Facebook、食べログ、Google Maps URLを自動取得
+  - 店舗の特徴を20文字以内で要約生成
+
+- **UI/UX実装**: アニメーション付きプロセス可視化
+  - `AIEnrichButton` コンポーネント: 処理ステップを可視化するリッチなUI
+  - framer-motionによるアニメーション（検索中 → 解析中 → 保存中）
+  - 完了時に取得したSNSアイコンをポコポコと表示
+  - モバイル対応のレスポンシブデザイン
+
+- **結果表示機能**: 新規取得データのハイライト表示
+  - リード詳細画面で新しく取得されたURLを光る枠線で強調表示
+  - AIが生成したサマリーを店舗名の下に表示
+  - 「🆕 AIが見つけました」バッジ表示（1分以内の新規取得データ）
+
+#### Enterprise Grade 品質機能
+- **コスト制御と冪等性**: 24時間以内の再実行を防止
+  - `lastEnrichedAt` を確認し、24時間以内の場合は既存データを返す
+  - 強制更新フラグ (`force`) による再実行オプション
+  - 不要なAPIコスト（二重課金）を物理的に防止
+
+- **エレガントなエラーハンドリング**: 具体的なエラーメッセージ表示
+  - SerpApi/OpenAIのエラーを識別し、ユーザーフレンドリーなメッセージに変換
+  - クォータ超過、タイムアウト、認証エラーなどを具体的に表示
+  - フロントエンドでエラー状態を表示（赤色、再試行ボタン）
+
+- **セキュリティとサニタイズ**: URL検証とHTMLタグ除去
+  - すべてのURLが `http://` または `https://` で始まることを検証
+  - AIが生成したテキストからHTMLタグを除去
+  - 入力バリデーションとZodスキーマによる型安全性
+
+### 変更
+- `leads` テーブルに `enrichStatus`, `enrichedAt`, `lastEnrichedAt` フィールドを追加
+- `sonner` パッケージを追加（トースト通知）
+- `serpapi` パッケージを追加（Google検索API）
+- `openai` パッケージを追加（AI構造化データ抽出）
+- ルートレイアウトに `SonnerToaster` を追加
+- `LeadDetailSheet` コンポーネントにAI強化ボタンを統合
+
+### 技術スタック
+- **serpapi**: Google検索API連携
+- **openai**: AI構造化データ抽出（gpt-4o-mini）
+- **sonner**: トースト通知システム
+- **framer-motion**: アニメーションライブラリ
+- **zod**: データバリデーション
+
+### データベース変更
+- `leads.enrichStatus`: 強化ステータス（PENDING/COMPLETED/FAILED）
+- `leads.enrichedAt`: 初回強化日時
+- `leads.lastEnrichedAt`: 最終強化日時（24時間制限チェック用）
+
+### 環境変数
+以下の環境変数の設定が必要です：
+- `SERPAPI_API_KEY`: SerpApiのAPIキー
+- `OPENAI_API_KEY`: OpenAIのAPIキー
+
+---
+
 ## [0.4.0] - 2025-01-10
 
 ### 追加

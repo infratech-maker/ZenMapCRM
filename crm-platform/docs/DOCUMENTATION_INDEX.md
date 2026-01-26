@@ -38,6 +38,14 @@
   - リレーション定義
   - インデックス定義
 
+### 機能別マニュアル
+
+- **[AI_ENRICHMENT_GUIDE.md](AI_ENRICHMENT_GUIDE.md)**
+  - AIリード強化機能の使い方
+  - 環境変数の設定方法
+  - トラブルシューティング
+  - 技術詳細
+
 ### 変更履歴
 
 - **[CHANGELOG.md](CHANGELOG.md)**
@@ -123,11 +131,12 @@ CHANGELOG.md の [Unreleased] に追加
 
 | ドキュメント | 最終更新日 | バージョン |
 |------------|----------|----------|
-| README.md | 2024-12-19 | 0.1.0 |
+| README.md | 2025-01-21 | 2.0.1 |
 | DESIGN.md | 2024-12-19 | 0.1.0 |
 | IMPLEMENTATION.md | 2024-12-19 | 0.1.0 |
 | SCHEMA_REFERENCE.md | 2024-12-19 | 0.1.0 |
-| CHANGELOG.md | 2024-12-19 | 0.1.0 |
+| CHANGELOG.md | 2025-01-21 | 2.0.1 |
+| AI_ENRICHMENT_GUIDE.md | 2025-01-21 | 2.0.1 |
 
 ---
 

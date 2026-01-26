@@ -240,6 +240,13 @@ crm-platform/
 - [x] Leads Grid（TanStack Table）
 - [x] Server Actions（テナントコンテキスト対応）
 
+### Phase 2.1: AIリード強化機能 ✅
+- [x] Zen-Map Intelligence Engine（SerpApi + OpenAI連携）
+- [x] リード情報の自動強化（公式サイト、SNS、食べログURL取得）
+- [x] アニメーション付きプロセス可視化UI
+- [x] 新規取得データのハイライト表示
+- [x] Enterprise Grade品質（コスト制御、エラーハンドリング、セキュリティ）
+
 ### Phase 3: CRM Core（実装予定）
 - [ ] 動的テーブル（TanStack Table）
 - [ ] フィールド定義管理画面
