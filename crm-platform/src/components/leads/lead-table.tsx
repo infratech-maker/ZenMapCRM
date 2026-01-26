@@ -33,6 +33,9 @@ interface Lead {
   data: any;
   status: string;
   notes: string | null;
+  enrichStatus?: string | null;
+  enrichedAt?: Date | null;
+  lastEnrichedAt?: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

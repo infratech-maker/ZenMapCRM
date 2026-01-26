@@ -37,16 +37,32 @@ export async function createScrapingJob(url: string) {
       })
       .returning();
 
-    // BullMQにジョブを追加
+    // パイプラインを開始（または従来のキューに追加）
     try {
-      const { addScrapingJob } = await import("@/lib/queue/scraping-queue");
-      const bullmqJobId = await addScrapingJob(job.id, tenantId, url.trim());
+      // 環境変数でパイプラインの使用を制御
+      const usePipeline = process.env.USE_PIPELINE === "true";
       
-      // BullMQのジョブIDをDBに保存
-      await db
-        .update(scrapingJobs)
-        .set({ bullmqJobId })
-        .where(eq(scrapingJobs.id, job.id));
+      if (usePipeline) {
+        // パイプラインを使用
+        const { startPipeline } = await import("@/lib/queue/pipeline-queue");
+        const bullmqJobId = await startPipeline(job.id, tenantId, url.trim());
+        
+        // BullMQのジョブIDをDBに保存
+        await db
+          .update(scrapingJobs)
+          .set({ bullmqJobId })
+          .where(eq(scrapingJobs.id, job.id));
+      } else {
+        // 従来のキューを使用（後方互換性）
+        const { addScrapingJob } = await import("@/lib/queue/scraping-queue");
+        const bullmqJobId = await addScrapingJob(job.id, tenantId, url.trim());
+        
+        // BullMQのジョブIDをDBに保存
+        await db
+          .update(scrapingJobs)
+          .set({ bullmqJobId })
+          .where(eq(scrapingJobs.id, job.id));
+      }
     } catch (error) {
       console.error("Failed to add job to BullMQ queue:", error);
       // BullMQへの追加に失敗しても、DBにはジョブが作成されているので続行
