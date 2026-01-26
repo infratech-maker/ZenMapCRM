@@ -6,6 +6,60 @@
 
 ## [Unreleased]
 
+### 追加
+
+#### RAG実装 Phase 5: Frontend Integration（フロントエンド統合）
+- **Hybrid Search UI (`src/components/leads/ai-search-dialog.tsx`)**
+  - ハイブリッド検索に対応: `hybridSearchMasterLeads()` を使用
+  - フィルターUI追加:
+    - エリアフィルター: 都道府県/市区町村を入力（例: "東京都 渋谷区"）
+    - カテゴリフィルター: 業種を入力（例: "カフェ", "美容室"）
+  - 検索結果にマッチした条件を表示（"エリア一致", "カテゴリ一致"バッジ）
+  - リアルタイム検索対応（Enterキーで検索実行）
+
+- **Secure Edit Action (`src/lib/actions/lead-actions.ts`)**
+  - `updateLeadAction()` Server Action: Service層を呼び出すラッパー
+  - 権限チェックとキャッシュ更新を実装
+
+- **Lead Detail Sheet 統合 (`src/components/leads/lead-detail-sheet.tsx`)**
+  - 新しい`updateLeadAction`を使用するように変更
+  - sonnerでToast通知を表示（"更新しました（AIインデックスも再計算済み）"）
+  - ステータス更新とメモ保存時に自動的にベクトル再計算
+
+#### RAG実装 Phase 4: Logic Layer（データ整合性とハイブリッド検索）
+- **Data Integrity Service (`src/services/lead-service.ts`)**
+  - `updateLead()` メソッド: リード情報の更新を一元管理
+  - トランザクション内で以下を実行:
+    1. Snapshot: 更新前のデータを `LeadSnapshot` テーブルに保存（履歴作成）
+    2. Update: `Lead` / `MasterLead` テーブルを更新
+    3. Vectorize: 更新後のテキストを生成し、OpenAI Embedding APIをコールして `LeadVector` を再更新
+  - ユーザーが編集した瞬間に「検索結果」と「履歴」が同期される
+
+- **Hybrid Search Action (`src/lib/actions/hybrid-search.ts`)**
+  - `hybridSearchMasterLeads()` 関数: 構造化フィルター + ベクトル検索
+  - 2段階の検索を実行:
+    1. Pre-filtering: filters に基づいて MasterLead のIDリストを絞り込み
+    2. Vector Search: そのIDリストを使ってpgvectorで類似度検索
+  - 「渋谷区(Filter) の 静かなカフェ(Vector)」という高精度な検索を実現
+
+- **LeadSnapshot モデル (`prisma/schema.prisma`)**
+  - リード情報の履歴管理用テーブル
+  - 更新前のデータを自動保存
+  - 将来の予知AIの燃料となる履歴データを蓄積
+
+#### RAG実装 Phase 3: HNSWインデックス（高速検索対応）
+- **HNSWインデックス追加**: ベクトル検索のパフォーマンス大幅向上
+  - `lead_vectors_embedding_idx`: HNSWアルゴリズムによる近似最近傍検索
+  - 大規模データセットでも高速な検索が可能
+  - 将来の「予知機能」と「空気感検索」に対応可能な基盤
+  - マイグレーション: `20260126133733_add_hnsw_index`
+  - パラメータ: `m = 16`, `ef_construction = 64`, `vector_cosine_ops`
+
+- **Prismaスキーマでのpgvector拡張機能設定**
+  - `generator client` に `previewFeatures = ["postgresqlExtensions"]` を追加
+  - `datasource db` に `extensions = [vector]` を追加
+  - Prismaが自動的に `CREATE EXTENSION IF NOT EXISTS vector;` を実行
+
 ### 予定
 - Phase 3: CRM Core & Dynamic Table 実装
 - Phase 4: Analytics & Dashboard 実装

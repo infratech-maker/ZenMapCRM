@@ -20,12 +20,13 @@ import {
 } from "@/components/ui/select";
 import { LeadStatusBadge } from "./lead-status-badge";
 import { ActivityLogSection } from "./activity-log-section";
-import { updateLead } from "@/lib/actions/leads";
+import { updateLeadAction } from "@/lib/actions/lead-actions";
 import { ExternalLink, Phone, MapPin, Link as LinkIcon, Instagram, Twitter, Facebook, Globe, MapPin as MapPinIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { AIEnrichButton } from "./ai-enrich-button";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
 
 interface Lead {
   id: string;
@@ -83,11 +84,19 @@ export function LeadDetailSheet({
     setError("");
 
     try {
-      await updateLead(lead.id, { status: newStatus });
-      router.refresh();
+      const result = await updateLeadAction(lead.id, { status: newStatus }, "status_update");
+      
+      if (result.success) {
+        toast.success(result.message || "更新しました（AIインデックスも再計算済み）");
+        router.refresh();
+      } else {
+        throw new Error(result.error || "ステータスの更新に失敗しました。");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ステータスの更新に失敗しました。");
+      const errorMessage = err instanceof Error ? err.message : "ステータスの更新に失敗しました。";
+      setError(errorMessage);
       setStatus(lead.status); // 元に戻す
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
@@ -100,10 +109,18 @@ export function LeadDetailSheet({
     setError("");
 
     try {
-      await updateLead(lead.id, { notes });
-      router.refresh();
+      const result = await updateLeadAction(lead.id, { notes }, "notes_update");
+      
+      if (result.success) {
+        toast.success(result.message || "更新しました（AIインデックスも再計算済み）");
+        router.refresh();
+      } else {
+        throw new Error(result.error || "メモの保存に失敗しました。");
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "メモの保存に失敗しました。");
+      const errorMessage = err instanceof Error ? err.message : "メモの保存に失敗しました。";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setIsSaving(false);
     }
