@@ -6,11 +6,202 @@
 
 ## [Unreleased]
 
+### 追加
+
+#### RAG実装 Phase 5: Frontend Integration（フロントエンド統合）
+- **Hybrid Search UI (`src/components/leads/ai-search-dialog.tsx`)**
+  - ハイブリッド検索に対応: `hybridSearchMasterLeads()` を使用
+  - フィルターUI追加:
+    - エリアフィルター: 都道府県/市区町村を入力（例: "東京都 渋谷区"）
+    - カテゴリフィルター: 業種を入力（例: "カフェ", "美容室"）
+  - 検索結果にマッチした条件を表示（"エリア一致", "カテゴリ一致"バッジ）
+  - リアルタイム検索対応（Enterキーで検索実行）
+
+- **Secure Edit Action (`src/lib/actions/lead-actions.ts`)**
+  - `updateLeadAction()` Server Action: Service層を呼び出すラッパー
+  - 権限チェックとキャッシュ更新を実装
+
+- **Lead Detail Sheet 統合 (`src/components/leads/lead-detail-sheet.tsx`)**
+  - 新しい`updateLeadAction`を使用するように変更
+  - sonnerでToast通知を表示（"更新しました（AIインデックスも再計算済み）"）
+  - ステータス更新とメモ保存時に自動的にベクトル再計算
+
+#### RAG実装 Phase 4: Logic Layer（データ整合性とハイブリッド検索）
+- **Data Integrity Service (`src/services/lead-service.ts`)**
+  - `updateLead()` メソッド: リード情報の更新を一元管理
+  - トランザクション内で以下を実行:
+    1. Snapshot: 更新前のデータを `LeadSnapshot` テーブルに保存（履歴作成）
+    2. Update: `Lead` / `MasterLead` テーブルを更新
+    3. Vectorize: 更新後のテキストを生成し、OpenAI Embedding APIをコールして `LeadVector` を再更新
+  - ユーザーが編集した瞬間に「検索結果」と「履歴」が同期される
+
+- **Hybrid Search Action (`src/lib/actions/hybrid-search.ts`)**
+  - `hybridSearchMasterLeads()` 関数: 構造化フィルター + ベクトル検索
+  - 2段階の検索を実行:
+    1. Pre-filtering: filters に基づいて MasterLead のIDリストを絞り込み
+    2. Vector Search: そのIDリストを使ってpgvectorで類似度検索
+  - 「渋谷区(Filter) の 静かなカフェ(Vector)」という高精度な検索を実現
+
+- **LeadSnapshot モデル (`prisma/schema.prisma`)**
+  - リード情報の履歴管理用テーブル
+  - 更新前のデータを自動保存
+  - 将来の予知AIの燃料となる履歴データを蓄積
+
+#### RAG実装 Phase 3: HNSWインデックス（高速検索対応）
+- **HNSWインデックス追加**: ベクトル検索のパフォーマンス大幅向上
+  - `lead_vectors_embedding_idx`: HNSWアルゴリズムによる近似最近傍検索
+  - 大規模データセットでも高速な検索が可能
+  - 将来の「予知機能」と「空気感検索」に対応可能な基盤
+  - マイグレーション: `20260126133733_add_hnsw_index`
+  - パラメータ: `m = 16`, `ef_construction = 64`, `vector_cosine_ops`
+
+- **Prismaスキーマでのpgvector拡張機能設定**
+  - `generator client` に `previewFeatures = ["postgresqlExtensions"]` を追加
+  - `datasource db` に `extensions = [vector]` を追加
+  - Prismaが自動的に `CREATE EXTENSION IF NOT EXISTS vector;` を実行
+
 ### 予定
 - Phase 3: CRM Core & Dynamic Table 実装
 - Phase 4: Analytics & Dashboard 実装
 - Phase 5: Simulation 機能実装
 - Phase 6: Scraping & CTI 統合（BullMQ、Playwright、Twilio）
+
+---
+
+<<<<<<< HEAD
+## [2.0.1] - 2025-01-21
+
+### 追加
+
+#### AIリード強化機能 (Zen-Map Intelligence Engine)
+- **Backend実装**: SerpApi + OpenAI連携によるリード情報自動強化
+  - `enrichLeadWithIntelligence` Server Action: Google検索とAI解析による情報抽出
+  - SerpApiでGoogle検索を実行し、検索結果（上位5件 + ナレッジグラフ）を取得
+  - OpenAI (gpt-4o-mini) で構造化データを抽出（Structured Output）
+  - 公式サイト、Instagram、X(Twitter)、Facebook、食べログ、Google Maps URLを自動取得
+  - 店舗の特徴を20文字以内で要約生成
+
+- **UI/UX実装**: アニメーション付きプロセス可視化
+  - `AIEnrichButton` コンポーネント: 処理ステップを可視化するリッチなUI
+  - framer-motionによるアニメーション（検索中 → 解析中 → 保存中）
+  - 完了時に取得したSNSアイコンをポコポコと表示
+  - モバイル対応のレスポンシブデザイン
+
+- **結果表示機能**: 新規取得データのハイライト表示
+  - リード詳細画面で新しく取得されたURLを光る枠線で強調表示
+  - AIが生成したサマリーを店舗名の下に表示
+  - 「🆕 AIが見つけました」バッジ表示（1分以内の新規取得データ）
+
+#### Enterprise Grade 品質機能
+- **コスト制御と冪等性**: 24時間以内の再実行を防止
+  - `lastEnrichedAt` を確認し、24時間以内の場合は既存データを返す
+  - 強制更新フラグ (`force`) による再実行オプション
+  - 不要なAPIコスト（二重課金）を物理的に防止
+
+- **エレガントなエラーハンドリング**: 具体的なエラーメッセージ表示
+  - SerpApi/OpenAIのエラーを識別し、ユーザーフレンドリーなメッセージに変換
+  - クォータ超過、タイムアウト、認証エラーなどを具体的に表示
+  - フロントエンドでエラー状態を表示（赤色、再試行ボタン）
+
+- **セキュリティとサニタイズ**: URL検証とHTMLタグ除去
+  - すべてのURLが `http://` または `https://` で始まることを検証
+  - AIが生成したテキストからHTMLタグを除去
+  - 入力バリデーションとZodスキーマによる型安全性
+
+### 変更
+- `leads` テーブルに `enrichStatus`, `enrichedAt`, `lastEnrichedAt` フィールドを追加
+- `sonner` パッケージを追加（トースト通知）
+- `serpapi` パッケージを追加（Google検索API）
+- `openai` パッケージを追加（AI構造化データ抽出）
+- ルートレイアウトに `SonnerToaster` を追加
+- `LeadDetailSheet` コンポーネントにAI強化ボタンを統合
+
+### 技術スタック
+- **serpapi**: Google検索API連携
+- **openai**: AI構造化データ抽出（gpt-4o-mini）
+- **sonner**: トースト通知システム
+- **framer-motion**: アニメーションライブラリ
+- **zod**: データバリデーション
+
+### データベース変更
+- `leads.enrichStatus`: 強化ステータス（PENDING/COMPLETED/FAILED）
+- `leads.enrichedAt`: 初回強化日時
+- `leads.lastEnrichedAt`: 最終強化日時（24時間制限チェック用）
+
+### 環境変数
+以下の環境変数の設定が必要です：
+- `SERPAPI_API_KEY`: SerpApiのAPIキー
+- `OPENAI_API_KEY`: OpenAIのAPIキー
+=======
+## [0.4.0] - 2025-01-20
+
+### 追加
+
+#### UberEats収集機能
+- **UberEats収集機能**: UberEatsから店舗リストを自動収集
+  - `startUbereatsScraping` Server Action: UberEatsエリアURLから店舗情報を収集
+  - `UbereatsScraperDialog` コンポーネント: 収集UI（エリア選択、収集上限数設定）
+  - 主要都市のプリセットエリア（東京、大阪、横浜、名古屋、福岡、札幌、仙台、京都）
+  - Apify統合による自動収集とMasterLeadへの自動登録
+
+#### 組織管理機能（SUPER_ADMIN専用）
+- **組織管理ページ**: システム全体の組織を管理
+  - `/dashboard/admin/organizations` ページ: 組織一覧表示
+  - `createOrganization` Server Action: 組織の新規作成
+  - `CreateOrganizationDialog` コンポーネント: 組織作成UI
+  - サイドバーに「ADMIN」セクションを追加（Super Adminのみ表示）
+
+#### UI/UX改善
+- **アニメーション背景コンポーネント**: リッチなアニメーション効果
+  - `AnimatedBackground` コンポーネント: オーロラ風のアニメーション
+  - 日本地図のフェードインアニメーション
+  - Tailwind CSS keyframes定義（`aurora-move`, `map-fade-in`）
+- **ログインページのデザイン統一**: トップページと統一されたデザイン
+  - ダークネイビーテーマの統一
+  - アニメーション背景の共有
+  - 半透明のログインフォーム（`bg-slate-900/60`）
+
+#### マルチテナント対応の強化
+- **組織スイッチャー**: 複数組織に所属するユーザー向け
+  - `OrganizationSwitcher` コンポーネント: 組織の切り替えUI
+  - `/api/organizations/mine` エンドポイント: ユーザーの組織一覧取得
+  - `/api/organization/switch` エンドポイント: アクティブ組織の切り替え
+  - Slim Session Pattern: セッションに`activeOrganizationId`と`activeOrganizationRole`を保存
+- **データフィルタリングの改善**: 組織単位でのデータアクセス
+  - プロジェクト一覧を`organizationId`でフィルタリング
+  - リード、マスターリード、顧客データを組織単位で管理
+  - `getCurrentOrgId()` ヘルパー関数: アクティブ組織IDの取得
+
+#### ドキュメント追加
+- Railway環境変数セットアップガイド（`APIFY_API_TOKEN`, `APIFY_WEBHOOK_SECRET`, `NEXT_PUBLIC_APP_URL`）
+- Staging環境Master Leadsマイグレーション手順
+- Apify APIトークンセットアップガイド
+- Railway `PUBLIC_DATABASE_URL` セットアップガイド
+- API移行ガイド
+
+### 変更
+
+#### 認証・セッション管理
+- NextAuth.jsセッション構造の変更: `organizationMemberships`を削除し、`activeOrganizationId`と`activeOrganizationRole`に簡素化
+- ログアウト時のリダイレクト先を相対パス（`/login`）に変更
+
+#### データベーススキーマ
+- `OrganizationMember` テーブル: ユーザーと組織の多対多関係を管理
+- `MasterLead` モデル: `organizationId`フィールドを追加（テナント共通マスタの場合はnull）
+
+### 修正
+
+#### バグ修正
+- Google Maps収集のエラーハンドリング改善: ApifyClientの遅延初期化、環境変数チェックの追加
+- ログアウト時のリダイレクト先エラー修正: 絶対URLではなく相対パスを使用
+- アニメーションが動作しない問題の修正: インラインスタイルでのアニメーション適用
+- `ScrapingJobStatus` enum値の修正: `'pending'` → `ScrapingJobStatus.PENDING`
+- プロジェクト一覧のフィルタリング修正: `userId`から`organizationId`に変更
+
+#### データアクセス修正
+- プロジェクト一覧・詳細ページ: `organizationId`でフィルタリング
+- リード、マスターリード、顧客データ: 組織単位でのアクセス制御
+>>>>>>> origin/main
 
 ---
 
