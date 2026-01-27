@@ -71,6 +71,20 @@
 
 ## 開発
 
+### ブランチ戦略とリリースフロー
+
+詳細は [ブランチ戦略ドキュメント](./docs/BRANCH_STRATEGY.md) を参照してください。
+
+**主要ブランチ:**
+- `main`: プロダクションブランチ（本番環境にデプロイ）
+- `develop`: 開発ブランチ（通常の開発作業）
+- `release/v*.*.*`: リリース準備ブランチ
+
+**リリースフロー:**
+```
+develop → release/v*.*.* → main (タグ作成) → GitHub Release
+```
+
 ### コントリビューション
 
 1. このリポジトリをフォーク
@@ -83,7 +97,7 @@
 
 - C#: .NET コーディング規約に準拠
 - TypeScript/JavaScript: ESLint と Prettier を使用
-- コミットメッセージ: 明確で説明的なメッセージを使用
+- コミットメッセージ: [Conventional Commits](https://www.conventionalcommits.org/) に準拠
 
 ## ライセンス
 
