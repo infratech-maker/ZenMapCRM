@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useTransition } from 'react'
-import { Search, FolderPlus, Loader2, Sparkles } from 'lucide-react'
+import { Search, FolderPlus, Loader2, Sparkles, MapPin, Tag } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -15,8 +15,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { useToast } from '@/hooks/use-toast'
-import { searchMasterLeadsByAI } from '@/lib/actions/ai-search'
+import { hybridSearchMasterLeads, HybridSearchFilters } from '@/lib/actions/hybrid-search'
 import { createProjectFromSearch } from '@/lib/actions/project'
+import { Badge } from '@/components/ui/badge'
 
 interface SearchResult {
   id: string
@@ -31,16 +32,19 @@ interface SearchResult {
 export function AISearchDialog() {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [areaFilter, setAreaFilter] = useState('')
+  const [categoryFilter, setCategoryFilter] = useState('')
   const [isSearching, startSearchTransition] = useTransition()
   const [isSaving, setIsSaving] = useState(false)
   const [results, setResults] = useState<SearchResult[]>([])
   const { toast } = useToast()
 
   const handleSearch = () => {
-    if (!query || query.trim().length === 0) {
+    // クエリまたはフィルターのいずれかが入力されている必要がある
+    if ((!query || query.trim().length === 0) && !areaFilter.trim() && !categoryFilter.trim()) {
       toast({
         title: "入力エラー",
-        description: "検索キーワードを入力してください。",
+        description: "検索キーワードまたは絞り込み条件を入力してください。",
         variant: "destructive"
       })
       return
@@ -48,7 +52,20 @@ export function AISearchDialog() {
 
     startSearchTransition(async () => {
       try {
-        const result = await searchMasterLeadsByAI(query.trim(), 50)
+        // フィルター条件を構築
+        const filters: HybridSearchFilters = {}
+        if (areaFilter.trim()) {
+          filters.area = areaFilter.trim()
+        }
+        if (categoryFilter.trim()) {
+          filters.category = categoryFilter.trim()
+        }
+
+        const result = await hybridSearchMasterLeads(
+          query.trim() || '', // クエリが空でもフィルターのみで検索可能
+          filters,
+          50
+        )
         
         if (result.success) {
           setResults(result.results || [])
@@ -56,6 +73,17 @@ export function AISearchDialog() {
             toast({
               title: "検索結果なし",
               description: "該当するリードが見つかりませんでした。",
+            })
+          } else {
+            // 検索成功時のフィードバック
+            const filterInfo = []
+            if (areaFilter.trim()) filterInfo.push(`エリア: ${areaFilter}`)
+            if (categoryFilter.trim()) filterInfo.push(`カテゴリ: ${categoryFilter}`)
+            if (query.trim()) filterInfo.push(`キーワード: ${query}`)
+            
+            toast({
+              title: "検索完了",
+              description: `${result.results.length}件見つかりました${filterInfo.length > 0 ? ` (${filterInfo.join(', ')})` : ''}`,
             })
           }
         } else {
@@ -125,19 +153,60 @@ export function AISearchDialog() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] max-h-[80vh] flex flex-col">
         <DialogHeader>
-          <DialogTitle>AI検索</DialogTitle>
+          <DialogTitle>AI検索（ハイブリッド検索）</DialogTitle>
           <DialogDescription>
-            自然言語で検索し、類似したリードをAIが自動で見つけます。
+            自然言語で検索し、エリアやカテゴリで絞り込んで、類似したリードをAIが自動で見つけます。
           </DialogDescription>
         </DialogHeader>
         
         <div className="flex flex-col gap-4 flex-1 overflow-hidden">
+          {/* フィルター条件 */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="grid gap-2">
+              <Label htmlFor="area-filter" className="flex items-center gap-1">
+                <MapPin className="h-3 w-3" />
+                エリア
+              </Label>
+              <Input
+                id="area-filter"
+                placeholder="例: 渋谷区, 東京都 新宿区"
+                value={areaFilter}
+                onChange={(e) => setAreaFilter(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isSearching) {
+                    handleSearch();
+                  }
+                }}
+                disabled={isSearching}
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="category-filter" className="flex items-center gap-1">
+                <Tag className="h-3 w-3" />
+                カテゴリ
+              </Label>
+              <Input
+                id="category-filter"
+                placeholder="例: カフェ, 美容室, レストラン"
+                value={categoryFilter}
+                onChange={(e) => setCategoryFilter(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && !isSearching) {
+                    handleSearch();
+                  }
+                }}
+                disabled={isSearching}
+              />
+            </div>
+          </div>
+
+          {/* 検索キーワード */}
           <div className="grid gap-2">
-            <Label htmlFor="search-query">検索キーワード</Label>
+            <Label htmlFor="search-query">検索キーワード（自然言語）</Label>
             <div className="flex gap-2">
               <Input
                 id="search-query"
-                placeholder="例: 渋谷のラーメン店, 新宿の居酒屋, 高評価のイタリアン"
+                placeholder="例: 隠れ家っぽいデート向きの店, 静かなカフェ, 高評価のイタリアン"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
                 onKeyDown={(e) => {
@@ -150,7 +219,7 @@ export function AISearchDialog() {
               />
               <Button 
                 onClick={handleSearch} 
-                disabled={isSearching || !query.trim()}
+                disabled={isSearching || (!query.trim() && !areaFilter.trim() && !categoryFilter.trim())}
               >
                 {isSearching ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
@@ -177,16 +246,35 @@ export function AISearchDialog() {
                   >
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <h4 className="font-medium text-sm">{result.companyName}</h4>
+                        <div className="flex items-center gap-2 mb-1">
+                          <h4 className="font-medium text-sm">{result.companyName}</h4>
+                          {result.similarity < 1.0 && (
+                            <Badge variant="secondary" className="text-xs">
+                              {Math.round(result.similarity * 100)}% マッチ
+                            </Badge>
+                          )}
+                        </div>
                         {result.address && (
-                          <p className="text-xs text-gray-500 mt-1">{result.address}</p>
+                          <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            {result.address}
+                            {areaFilter.trim() && result.address.includes(areaFilter) && (
+                              <Badge variant="outline" className="ml-1 text-xs">エリア一致</Badge>
+                            )}
+                          </p>
                         )}
                         {result.phone && (
                           <p className="text-xs text-gray-500">{result.phone}</p>
                         )}
-                      </div>
-                      <div className="text-xs text-gray-400 ml-2">
-                        {Math.round(result.similarity * 100)}%
+                        {result.data && (result.data as any).category && (
+                          <p className="text-xs text-gray-500 flex items-center gap-1 mt-1">
+                            <Tag className="h-3 w-3" />
+                            {(result.data as any).category}
+                            {categoryFilter.trim() && (result.data as any).category === categoryFilter && (
+                              <Badge variant="outline" className="ml-1 text-xs">カテゴリ一致</Badge>
+                            )}
+                          </p>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -234,6 +322,8 @@ export function AISearchDialog() {
           <Button variant="outline" onClick={() => {
             setOpen(false);
             setQuery('');
+            setAreaFilter('');
+            setCategoryFilter('');
             setResults([]);
           }}>
             閉じる

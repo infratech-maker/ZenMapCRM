@@ -1,18 +1,20 @@
 {
   "name": "crm-platform",
-  "version": "0.4.0",
+  "version": "0.5.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 5000",
     "build": "next build",
-    "start": "next start -p 3001",
+    "start": "next start",
     "start:worker": "tsx src/workers/index.ts",
+    "start:pipeline-workers": "tsx src/workers/pipeline-index.ts",
     "lint": "next lint",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "db:seed:tenant": "tsx scripts/seed-tenant.ts",
+    "db:seed:projects": "tsx scripts/seed-develop-projects.ts",
     "db:import:leads": "tsx scripts/import-leads.ts",
     "db:import:customers": "tsx scripts/import-customers.ts",
     "db:import:tabelog": "tsx scripts/import-tabelog-data.ts",
@@ -40,6 +42,7 @@
     "@radix-ui/react-select": "^2.1.1",
     "@radix-ui/react-separator": "^1.1.8",
     "@radix-ui/react-switch": "^1.2.6",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@radix-ui/react-toast": "^1.2.15",
     "@supabase/supabase-js": "^2.45.4",
     "@tanstack/react-query": "^5.56.2",
@@ -71,7 +74,10 @@
     "tailwind-merge": "^2.5.2",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8",
-    "zustand": "^4.5.5"
+    "zustand": "^4.5.5",
+    "serpapi": "^2.0.0",
+    "openai": "^4.0.0",
+    "sonner": "^1.4.0"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
